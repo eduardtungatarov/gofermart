@@ -1,7 +1,7 @@
 # Как запустить?
 1. `make up` - запускаем бд в контейнере на localhost:5432 (убедитесь что не занят :garold:)
-2. `make run` - запускаем приложение gofermart. По дефолту запускается на localhost:8080 (убедитесь что не занят :garold:)
-
+2. `make run` - запускаем приложение gofermart. По дефолту запускается на localhost:8081.
+2. `make run-accrual` - запускаем приложение accrual_darwin_amd64 (если арх другая поменяйте :garold:). По дефолту запускается на localhost:8080
 
 # go-musthave-diploma-tpl
 

@@ -7,12 +7,14 @@ import (
 )
 
 const (
-	DefaultServerHostPort = "localhost:8080"
-	DefaultDatabaseDSN    = "host=localhost port=5432 user=myuser password=mypassword dbname=mydatabase sslmode=disable"
+	DefaultRunADDR           = "localhost:8081"
+	DefaultDatabaseURI       = "host=localhost port=5432 user=myuser password=mypassword dbname=mydatabase sslmode=disable"
+	DefaultAccrualSystemADRR = ""
 )
 
 type Config struct {
-	ServerHostPort string
+	RunADDR     string
+	AccrualADDR string
 	Database
 }
 
@@ -22,24 +24,31 @@ type Database struct {
 }
 
 func Load() Config {
-	flagServer := flag.String("a", DefaultServerHostPort, "отвечает за адрес запуска HTTP-сервера")
-	databaseDSN := flag.String("d", DefaultDatabaseDSN, "строка с адресом подключения к БД")
+	runADDR := flag.String("a", DefaultRunADDR, "отвечает за адрес запуска HTTP-сервера")
+	databaseURI := flag.String("d", DefaultDatabaseURI, "строка с адресом подключения к БД")
+	accrualADDR := flag.String("r", DefaultAccrualSystemADRR, "адрес системы расчёта начислений")
 	flag.Parse()
 
-	aEnv, ok := os.LookupEnv("SERVER_ADDRESS")
+	aEnv, ok := os.LookupEnv("RUN_ADDRESS")
 	if ok {
-		*flagServer = aEnv
+		*runADDR = aEnv
 	}
 
-	dEnv, ok := os.LookupEnv("DATABASE_DSN")
+	dEnv, ok := os.LookupEnv("DATABASE_URI")
 	if ok {
-		*databaseDSN = dEnv
+		*databaseURI = dEnv
+	}
+
+	rEnv, ok := os.LookupEnv("ACCRUAL_SYSTEM_ADDRESS")
+	if ok {
+		*accrualADDR = rEnv
 	}
 
 	return Config{
-		ServerHostPort: *flagServer,
+		RunADDR:     *runADDR,
+		AccrualADDR: *accrualADDR,
 		Database: Database{
-			DSN:     *databaseDSN,
+			DSN:     *databaseURI,
 			Timeout: time.Second * 1,
 		},
 	}
