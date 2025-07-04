@@ -2,7 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"log"
+	"github.com/eduardtungatarov/gofermart/internal/handlers"
+	"github.com/eduardtungatarov/gofermart/internal/logger"
+	"github.com/eduardtungatarov/gofermart/internal/middleware"
+	"github.com/eduardtungatarov/gofermart/internal/server"
+	stlog "log"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
 
@@ -11,6 +15,11 @@ import (
 )
 
 func main() {
+	log, err := logger.MakeLogger()
+	if err != nil {
+		stlog.Fatalf("Failed to make Logger: %v", err)
+	}
+
 	cfg := config.Load()
 
 	// Подключаемся к базе данных.
@@ -24,5 +33,14 @@ func main() {
 	err = goose.Up(db, "migrations")
 	if err != nil {
 		log.Fatalf("Failed to apply migrations: %v", err)
+	}
+
+	// Запускаем сервер, указываем хендлеры и миддлваре.
+	h := handlers.MakeHandler(log)
+	m := middleware.MakeMiddleware(log)
+	s := server.NewServer(cfg, h, m)
+	err = s.Run()
+	if err != nil {
+		log.Fatalf("failed to run server: %v", err)
 	}
 }
