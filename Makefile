@@ -15,3 +15,6 @@ fix:
 
 test:
 	go test ./...
+
+make gen-sql:
+	sqlc generate

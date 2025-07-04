@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -35,7 +34,6 @@ func TestLoadConfig(t *testing.T) {
 				AccrualADDR: DefaultAccrualSystemADRR,
 				Database: Database{
 					DSN:     DefaultDatabaseURI,
-					Timeout: time.Second * 1,
 				},
 			},
 		},
@@ -47,7 +45,6 @@ func TestLoadConfig(t *testing.T) {
 				AccrualADDR: "http://accrual:8080",
 				Database: Database{
 					DSN:     "postgres://user:pass@localhost:5432/db",
-					Timeout: time.Second * 1,
 				},
 			},
 		},
@@ -64,7 +61,6 @@ func TestLoadConfig(t *testing.T) {
 				AccrualADDR: "http://accrual:8080",
 				Database: Database{
 					DSN:     "postgres://user:pass@localhost:5432/db",
-					Timeout: time.Second * 1,
 				},
 			},
 		},
@@ -81,7 +77,6 @@ func TestLoadConfig(t *testing.T) {
 				AccrualADDR: "http://env:8080",
 				Database: Database{
 					DSN:     "postgres://env:env@env:5432/env",
-					Timeout: time.Second * 1,
 				},
 			},
 		},
@@ -111,9 +106,6 @@ func TestLoadConfig(t *testing.T) {
 			}
 			if got.Database.DSN != tt.expected.Database.DSN {
 				t.Errorf("Database.DSN got = %v, want %v", got.Database.DSN, tt.expected.Database.DSN)
-			}
-			if got.Database.Timeout != tt.expected.Database.Timeout {
-				t.Errorf("Database.Timeout got = %v, want %v", got.Database.Timeout, tt.expected.Database.Timeout)
 			}
 		})
 	}

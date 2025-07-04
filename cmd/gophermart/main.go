@@ -2,11 +2,14 @@ package main
 
 import (
 	"database/sql"
+	stlog "log"
+
 	"github.com/eduardtungatarov/gofermart/internal/handlers"
 	"github.com/eduardtungatarov/gofermart/internal/logger"
 	"github.com/eduardtungatarov/gofermart/internal/middleware"
+	userRepository "github.com/eduardtungatarov/gofermart/internal/repository/user"
 	"github.com/eduardtungatarov/gofermart/internal/server"
-	stlog "log"
+	authService "github.com/eduardtungatarov/gofermart/internal/service/auth"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
 
@@ -35,8 +38,12 @@ func main() {
 		log.Fatalf("Failed to apply migrations: %v", err)
 	}
 
+	// Собираем дерево зависимостей.
+	userRepo := userRepository.New(db)
+	authSrv := authService.New(userRepo)
+
 	// Запускаем сервер, указываем хендлеры и миддлваре.
-	h := handlers.MakeHandler(log)
+	h := handlers.MakeHandler(log, authSrv)
 	m := middleware.MakeMiddleware(log)
 	s := server.NewServer(cfg, h, m)
 	err = s.Run()

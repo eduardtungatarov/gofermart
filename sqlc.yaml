@@ -1,0 +1,20 @@
+version: "2"
+sql:
+  # Для User
+  - &base_settings
+    engine: "postgresql"
+    schema: "migrations/"
+    queries: "queries/user.sql"
+    gen:
+      go: &gen_settings
+        package: "queries"
+        out: "internal/repository/user/queries"
+        sql_package: "database/sql"
+        omit_unused_structs: true
+        emit_interface: true
+        emit_exported_queries: true
+        emit_methods_with_db_argument: true
+        emit_sql_as_comment: true
+        overrides:
+          - db_type: "pg_catalog.int4"
+            go_type: "int"

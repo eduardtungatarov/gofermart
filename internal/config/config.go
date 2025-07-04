@@ -3,7 +3,6 @@ package config
 import (
 	"flag"
 	"os"
-	"time"
 )
 
 const (
@@ -20,7 +19,6 @@ type Config struct {
 
 type Database struct {
 	DSN     string
-	Timeout time.Duration
 }
 
 func Load() Config {
@@ -49,7 +47,6 @@ func Load() Config {
 		AccrualADDR: *accrualADDR,
 		Database: Database{
 			DSN:     *databaseURI,
-			Timeout: time.Second * 1,
 		},
 	}
 }
