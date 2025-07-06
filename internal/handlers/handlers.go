@@ -42,6 +42,12 @@ func (h *Handler) PostUserRegister(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if reqStr.Login == "" || reqStr.Pwd == "" {
+		h.log.Infof("login or pwd not be empty")
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	token, err := h.authService.Register(req.Context(), reqStr.Login, reqStr.Pwd)
 	if err != nil {
 		if errors.Is(err, userRepository.ErrUserAlreadyExists) {
