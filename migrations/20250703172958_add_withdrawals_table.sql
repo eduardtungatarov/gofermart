@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS withdrawals (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     order_number VARCHAR(255) NOT NULL,
-    sum INTEGER NOT NULL CHECK (sum > 0),
+    sum INTEGER NOT NULL,
     processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS orders (
     user_id INTEGER NOT NULL,
     order_number VARCHAR(255) UNIQUE NOT NULL,
     status VARCHAR(255) NOT NULL,
-    accrual INTEGER NOT NULL CHECK (accrual > 0),
+    accrual INTEGER NOT NULL,
     uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

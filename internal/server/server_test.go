@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
+	orderMocks "github.com/eduardtungatarov/gofermart/internal/service/order/mocks"
 
 	"github.com/eduardtungatarov/gofermart/internal/repository/user"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/eduardtungatarov/gofermart/internal/repository/user/queries"
 	"github.com/eduardtungatarov/gofermart/internal/server"
 	"github.com/eduardtungatarov/gofermart/internal/service/auth"
+	"github.com/eduardtungatarov/gofermart/internal/service/order"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -30,162 +32,135 @@ func TestRegisterEndpoint(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	cfg := config.Config{RunADDR: ":0"}
 
-	t.Run("successful_registration", func(t *testing.T) {
-		// Настраиваем мок репозитория
-		userRepo := mocks.NewUserRepository(t)
-		userRepo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
-			Return(queries.User{ID: 1}, nil)
+	tests := []struct {
+		name           string
+		setupMock      func(*mocks.UserRepository)
+		requestBody    map[string]string
+		contentType    string
+		expectedStatus int
+		checkResponse  func(*testing.T, *http.Response)
+		checkMock      func(*testing.T, *mocks.UserRepository)
+	}{
+		{
+			name: "successful_registration",
+			setupMock: func(repo *mocks.UserRepository) {
+				repo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
+					Return(queries.User{ID: 1}, nil)
+			},
+			requestBody: map[string]string{
+				"login":    "testuser",
+				"password": "testpass",
+			},
+			contentType:    "application/json",
+			expectedStatus: http.StatusOK,
+			checkResponse: func(t *testing.T, resp *http.Response) {
+				assert.NotEmpty(t, resp.Header.Get("Authorization"), "токен не должен быть пустым")
+			},
+			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+				repo.AssertExpectations(t)
+			},
+		},
+		{
+			name: "user_already_exists",
+			setupMock: func(repo *mocks.UserRepository) {
+				repo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
+					Return(queries.User{}, user.ErrUserAlreadyExists)
+			},
+			requestBody: map[string]string{
+				"login":    "existinguser",
+				"password": "testpass",
+			},
+			contentType:    "application/json",
+			expectedStatus: http.StatusConflict,
+			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+				repo.AssertExpectations(t)
+			},
+		},
+		{
+			name:      "invalid_request_missing_fields",
+			setupMock: func(repo *mocks.UserRepository) {},
+			requestBody: map[string]string{
+				"login": "testuser",
+			},
+			contentType:    "application/json",
+			expectedStatus: http.StatusBadRequest,
+			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+				repo.AssertNotCalled(t, "SaveUser")
+			},
+		},
+		{
+			name:      "invalid_request_wrong_content_type",
+			setupMock: func(repo *mocks.UserRepository) {},
+			requestBody: map[string]string{
+				"login":    "testuser",
+				"password": "testpass",
+			},
+			contentType:    "text/plain",
+			expectedStatus: http.StatusBadRequest,
+			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+				repo.AssertNotCalled(t, "SaveUser")
+			},
+		},
+		{
+			name: "internal_server_error",
+			setupMock: func(repo *mocks.UserRepository) {
+				repo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
+					Return(queries.User{}, errors.New("database error"))
+			},
+			requestBody: map[string]string{
+				"login":    "testuser",
+				"password": "testpass",
+			},
+			contentType:    "application/json",
+			expectedStatus: http.StatusInternalServerError,
+			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+				repo.AssertExpectations(t)
+			},
+		},
+	}
 
-		// Собираем сервисы
-		authSrv := auth.New(userRepo)
-		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger, authSrv)
-		s := server.NewServer(cfg, h, m)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Настраиваем мок репозитория
+			userRepo := mocks.NewUserRepository(t)
+			orderRepo := orderMocks.NewOrderRepository(t)
+			tt.setupMock(userRepo)
 
-		// Создаем тестовый сервер
-		testServer := httptest.NewServer(s.GetRouter())
-		defer testServer.Close()
+			// Собираем сервисы
+			authSrv := auth.New(userRepo)
+			orderSrv := order.New(orderRepo)
+			h := handlers.MakeHandler(logger, authSrv, orderSrv)
+			m := middleware.MakeMiddleware(logger, authSrv)
+			s := server.NewServer(cfg, h, m)
 
-		// Подготовка запроса
-		requestBody := map[string]string{
-			"login":    "testuser",
-			"password": "testpass",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
+			// Создаем тестовый сервер
+			testServer := httptest.NewServer(s.GetRouter())
+			defer testServer.Close()
 
-		// Выполняем запрос
-		resp, err := http.Post(
-			testServer.URL+"/api/user/register",
-			"application/json",
-			bytes.NewBuffer(jsonBody),
-		)
-		assert.NoError(t, err)
-		defer resp.Body.Close()
+			// Подготовка запроса
+			jsonBody, _ := json.Marshal(tt.requestBody)
 
-		// Проверяем результаты
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.NotEmpty(t, resp.Header.Get("Authorization"), "токен не должен быть пустым")
-		userRepo.AssertExpectations(t)
-	})
+			// Выполняем запрос
+			resp, err := http.Post(
+				testServer.URL+"/api/user/register",
+				tt.contentType,
+				bytes.NewBuffer(jsonBody),
+			)
+			assert.NoError(t, err)
+			defer resp.Body.Close()
 
-	t.Run("user_already_exists", func(t *testing.T) {
-		userRepo := mocks.NewUserRepository(t)
-		userRepo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
-			Return(queries.User{}, user.ErrUserAlreadyExists)
+			// Проверяем результаты
+			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 
-		authSrv := auth.New(userRepo)
-		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger, authSrv)
-		s := server.NewServer(cfg, h, m)
+			if tt.checkResponse != nil {
+				tt.checkResponse(t, resp)
+			}
 
-		testServer := httptest.NewServer(s.GetRouter())
-		defer testServer.Close()
-
-		requestBody := map[string]string{
-			"login":    "existinguser",
-			"password": "testpass",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
-
-		resp, err := http.Post(
-			testServer.URL+"/api/user/register",
-			"application/json",
-			bytes.NewBuffer(jsonBody),
-		)
-		assert.NoError(t, err)
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusConflict, resp.StatusCode)
-		userRepo.AssertExpectations(t)
-	})
-
-	t.Run("invalid_request_missing_fields", func(t *testing.T) {
-		userRepo := mocks.NewUserRepository(t)
-		authSrv := auth.New(userRepo)
-		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger, authSrv)
-		s := server.NewServer(cfg, h, m)
-
-		testServer := httptest.NewServer(s.GetRouter())
-		defer testServer.Close()
-
-		// Тело запроса без поля password
-		requestBody := map[string]string{
-			"login": "testuser",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
-
-		resp, err := http.Post(
-			testServer.URL+"/api/user/register",
-			"application/json",
-			bytes.NewBuffer(jsonBody),
-		)
-		assert.NoError(t, err)
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		userRepo.AssertNotCalled(t, "SaveUser")
-	})
-
-	t.Run("invalid_request_wrong_content_type", func(t *testing.T) {
-		userRepo := mocks.NewUserRepository(t)
-		authSrv := auth.New(userRepo)
-		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger, authSrv)
-		s := server.NewServer(cfg, h, m)
-
-		testServer := httptest.NewServer(s.GetRouter())
-		defer testServer.Close()
-
-		requestBody := map[string]string{
-			"login":    "testuser",
-			"password": "testpass",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
-
-		// Отправляем с неправильным Content-Type
-		resp, err := http.Post(
-			testServer.URL+"/api/user/register",
-			"text/plain",
-			bytes.NewBuffer(jsonBody),
-		)
-		assert.NoError(t, err)
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		userRepo.AssertNotCalled(t, "SaveUser")
-	})
-
-	t.Run("internal_server_error", func(t *testing.T) {
-		userRepo := mocks.NewUserRepository(t)
-		userRepo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
-			Return(queries.User{}, errors.New("database error"))
-
-		authSrv := auth.New(userRepo)
-		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger, authSrv)
-		s := server.NewServer(cfg, h, m)
-
-		testServer := httptest.NewServer(s.GetRouter())
-		defer testServer.Close()
-
-		requestBody := map[string]string{
-			"login":    "testuser",
-			"password": "testpass",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
-
-		resp, err := http.Post(
-			testServer.URL+"/api/user/register",
-			"application/json",
-			bytes.NewBuffer(jsonBody),
-		)
-		assert.NoError(t, err)
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-		userRepo.AssertExpectations(t)
-	})
+			if tt.checkMock != nil {
+				tt.checkMock(t, userRepo)
+			}
+		})
+	}
 }
 
 func TestLoginEndpoint(t *testing.T) {
@@ -259,6 +234,7 @@ func TestLoginEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// 1. Инициализация моков
 			repo := new(mocks.UserRepository)
+			orderRepo := orderMocks.NewOrderRepository(t)
 			if tt.mockBehavior != nil {
 				tt.mockBehavior(repo)
 			}
@@ -266,7 +242,9 @@ func TestLoginEndpoint(t *testing.T) {
 			// 2. Создание тестового сервера
 			logger := zap.NewNop().Sugar()
 			authService := auth.New(repo)
-			handler := handlers.MakeHandler(logger, authService)
+			orderService := order.New(orderRepo)
+
+			handler := handlers.MakeHandler(logger, authService, orderService)
 			srv := server.NewServer(config.Config{}, handler, middleware.MakeMiddleware(logger, authService))
 
 			// 3. Формирование запроса

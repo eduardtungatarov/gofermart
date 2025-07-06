@@ -5,7 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"strconv"
+	"unicode"
+
+	"github.com/eduardtungatarov/gofermart/internal/service/order"
 
 	"github.com/eduardtungatarov/gofermart/internal/service/auth"
 
@@ -19,15 +24,21 @@ type AuthService interface {
 	Login(ctx context.Context, login, pwd string) (string, error)
 }
 
-type Handler struct {
-	log         *zap.SugaredLogger
-	authService AuthService
+type OrderService interface {
+	PostUserOrders(ctx context.Context, orderNumber string) error
 }
 
-func MakeHandler(log *zap.SugaredLogger, authService AuthService) *Handler {
+type Handler struct {
+	log          *zap.SugaredLogger
+	authService  AuthService
+	orderService OrderService
+}
+
+func MakeHandler(log *zap.SugaredLogger, authService AuthService, orderService OrderService) *Handler {
 	return &Handler{
-		log:         log,
-		authService: authService,
+		log:          log,
+		authService:  authService,
+		orderService: orderService,
 	}
 }
 
@@ -102,4 +113,72 @@ func (h *Handler) PostUserLogin(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) PostUserOrders(res http.ResponseWriter, req *http.Request) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		h.log.Infof("Не удалось прочитать тело запроса PostUserOrders: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer req.Body.Close()
+
+	if len(body) == 0 {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	orderNumber := string(body)
+	if !h.isValidLuhn(orderNumber) {
+		res.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	err = h.orderService.PostUserOrders(req.Context(), orderNumber)
+	if err != nil {
+		if errors.Is(err, order.ErrOrderAlreadyUploadedByUser) {
+			res.WriteHeader(http.StatusOK)
+			return
+		}
+		if errors.Is(err, order.ErrOrderAlreadyUploadedByAnotherUser) {
+			res.WriteHeader(http.StatusConflict)
+			return
+		}
+		h.log.Infof("h.OrderService.PostUserOrders: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusAccepted)
+	return
+}
+
+func (h *Handler) isValidLuhn(number string) bool {
+	// Проверяем что строка состоит только из цифр
+	for _, r := range number {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+
+	// Алгоритм Луна требует как минимум 2 цифры
+	if len(number) < 2 {
+		return false
+	}
+
+	sum := 0
+	// Идем по цифрам справа налево
+	for i := 0; i < len(number); i++ {
+		digit, _ := strconv.Atoi(string(number[len(number)-1-i]))
+
+		// Каждую вторую цифру умножаем на 2
+		if i%2 == 1 {
+			digit *= 2
+			if digit > 9 {
+				digit = digit%10 + digit/10
+			}
+		}
+		sum += digit
+	}
+
+	// Сумма должна быть кратна 10
+	return sum%10 == 0
 }
