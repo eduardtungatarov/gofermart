@@ -9,12 +9,24 @@ import (
 )
 
 type Querier interface {
+	//FindUserByLogin
+	//
+	//  SELECT id, login, password, token FROM users
+	//  WHERE login = $1 LIMIT 1
+	FindUserByLogin(ctx context.Context, db DBTX, login string) (User, error)
 	//SaveUser
 	//
 	//  INSERT INTO users (login, password, token)
 	//  VALUES ($1, $2, $3)
 	//  RETURNING id, login, password, token
 	SaveUser(ctx context.Context, db DBTX, arg SaveUserParams) (User, error)
+	//UpdateTokenByUser
+	//
+	//  UPDATE users
+	//  SET token = $1
+	//  WHERE login = $2
+	//  RETURNING id, login, password, token
+	UpdateTokenByUser(ctx context.Context, db DBTX, arg UpdateTokenByUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

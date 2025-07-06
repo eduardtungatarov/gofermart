@@ -33,7 +33,7 @@ func TestLoadConfig(t *testing.T) {
 				RunADDR:     DefaultRunADDR,
 				AccrualADDR: DefaultAccrualSystemADRR,
 				Database: Database{
-					DSN:     DefaultDatabaseURI,
+					DSN: DefaultDatabaseURI,
 				},
 			},
 		},
@@ -44,7 +44,7 @@ func TestLoadConfig(t *testing.T) {
 				RunADDR:     ":9090",
 				AccrualADDR: "http://accrual:8080",
 				Database: Database{
-					DSN:     "postgres://user:pass@localhost:5432/db",
+					DSN: "postgres://user:pass@localhost:5432/db",
 				},
 			},
 		},
@@ -52,15 +52,15 @@ func TestLoadConfig(t *testing.T) {
 			name: "environment_variables",
 			args: []string{"cmd"},
 			env: map[string]string{
-				"RUN_ADDRESS":             ":9090",
-				"DATABASE_URI":            "postgres://user:pass@localhost:5432/db",
-				"ACCRUAL_SYSTEM_ADDRESS":  "http://accrual:8080",
+				"RUN_ADDRESS":            ":9090",
+				"DATABASE_URI":           "postgres://user:pass@localhost:5432/db",
+				"ACCRUAL_SYSTEM_ADDRESS": "http://accrual:8080",
 			},
 			expected: Config{
 				RunADDR:     ":9090",
 				AccrualADDR: "http://accrual:8080",
 				Database: Database{
-					DSN:     "postgres://user:pass@localhost:5432/db",
+					DSN: "postgres://user:pass@localhost:5432/db",
 				},
 			},
 		},
@@ -68,15 +68,15 @@ func TestLoadConfig(t *testing.T) {
 			name: "env_override_flags",
 			args: []string{"cmd", "-a=:9091", "-d=postgres://flag:flag@flag:5432/flag", "-r=http://flag:8081"},
 			env: map[string]string{
-				"RUN_ADDRESS":             ":9090",
-				"DATABASE_URI":            "postgres://env:env@env:5432/env",
-				"ACCRUAL_SYSTEM_ADDRESS":  "http://env:8080",
+				"RUN_ADDRESS":            ":9090",
+				"DATABASE_URI":           "postgres://env:env@env:5432/env",
+				"ACCRUAL_SYSTEM_ADDRESS": "http://env:8080",
 			},
 			expected: Config{
 				RunADDR:     ":9090",
 				AccrualADDR: "http://env:8080",
 				Database: Database{
-					DSN:     "postgres://env:env@env:5432/env",
+					DSN: "postgres://env:env@env:5432/env",
 				},
 			},
 		},

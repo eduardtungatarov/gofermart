@@ -31,16 +31,19 @@ func (s *Server) Run() error {
 func (s *Server) GetRouter() chi.Router {
 	r := chi.NewRouter()
 
-	withJSONReqCheck := r.Group(func(r chi.Router) {
-		r.Use(s.m.WithJSONReqCheck)
-	})
+	r.With(s.m.WithJSONReqCheck).Post(
+		"/api/user/register",
+		s.h.PostUserRegister,
+	)
+	r.With(s.m.WithJSONReqCheck).Post(
+		"/api/user/login",
+		s.h.PostUserLogin,
+	)
 
-	withJSONReqCheck.Group(func(r chi.Router) {
-		r.Post(
-			"/api/user/register",
-			s.h.PostUserRegister,
-		)
-	})
+	r.With(s.m.WithTextPlainReqCheck).Post(
+		"/api/user/orders",
+		s.h.PostUserOrders,
+	)
 
 	return r
 }

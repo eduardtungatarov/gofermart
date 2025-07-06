@@ -18,7 +18,7 @@ type Config struct {
 }
 
 type Database struct {
-	DSN     string
+	DSN string
 }
 
 func Load() Config {
@@ -46,7 +46,7 @@ func Load() Config {
 		RunADDR:     *runADDR,
 		AccrualADDR: *accrualADDR,
 		Database: Database{
-			DSN:     *databaseURI,
+			DSN: *databaseURI,
 		},
 	}
 }
