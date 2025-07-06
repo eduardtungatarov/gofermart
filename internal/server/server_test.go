@@ -34,12 +34,12 @@ func TestRegisterEndpoint(t *testing.T) {
 		// Настраиваем мок репозитория
 		userRepo := mocks.NewUserRepository(t)
 		userRepo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
-			Return(queries.User{Token: "test-token"}, nil)
+			Return(queries.User{ID: 1}, nil)
 
 		// Собираем сервисы
 		authSrv := auth.New(userRepo)
 		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger)
+		m := middleware.MakeMiddleware(logger, authSrv)
 		s := server.NewServer(cfg, h, m)
 
 		// Создаем тестовый сервер
@@ -64,7 +64,7 @@ func TestRegisterEndpoint(t *testing.T) {
 
 		// Проверяем результаты
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.Contains(t, resp.Header.Get("Authorization"), "ApiKey test-token")
+		assert.NotEmpty(t, resp.Header.Get("Authorization"), "токен не должен быть пустым")
 		userRepo.AssertExpectations(t)
 	})
 
@@ -75,7 +75,7 @@ func TestRegisterEndpoint(t *testing.T) {
 
 		authSrv := auth.New(userRepo)
 		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger)
+		m := middleware.MakeMiddleware(logger, authSrv)
 		s := server.NewServer(cfg, h, m)
 
 		testServer := httptest.NewServer(s.GetRouter())
@@ -103,7 +103,7 @@ func TestRegisterEndpoint(t *testing.T) {
 		userRepo := mocks.NewUserRepository(t)
 		authSrv := auth.New(userRepo)
 		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger)
+		m := middleware.MakeMiddleware(logger, authSrv)
 		s := server.NewServer(cfg, h, m)
 
 		testServer := httptest.NewServer(s.GetRouter())
@@ -131,7 +131,7 @@ func TestRegisterEndpoint(t *testing.T) {
 		userRepo := mocks.NewUserRepository(t)
 		authSrv := auth.New(userRepo)
 		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger)
+		m := middleware.MakeMiddleware(logger, authSrv)
 		s := server.NewServer(cfg, h, m)
 
 		testServer := httptest.NewServer(s.GetRouter())
@@ -163,7 +163,7 @@ func TestRegisterEndpoint(t *testing.T) {
 
 		authSrv := auth.New(userRepo)
 		h := handlers.MakeHandler(logger, authSrv)
-		m := middleware.MakeMiddleware(logger)
+		m := middleware.MakeMiddleware(logger, authSrv)
 		s := server.NewServer(cfg, h, m)
 
 		testServer := httptest.NewServer(s.GetRouter())
@@ -210,8 +210,6 @@ func TestLoginEndpoint(t *testing.T) {
 			},
 			mockBehavior: func(m *mocks.UserRepository) {
 				m.On("FindUserByLogin", mock.Anything, "valid_user").Return(validUser, nil)
-				m.On("UpdateTokenByLogin", mock.Anything, "valid_user", mock.AnythingOfType("string")).
-					Return(queries.User{Token: "new_token"}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			wantToken:      true,
@@ -269,7 +267,7 @@ func TestLoginEndpoint(t *testing.T) {
 			logger := zap.NewNop().Sugar()
 			authService := auth.New(repo)
 			handler := handlers.MakeHandler(logger, authService)
-			srv := server.NewServer(config.Config{}, handler, middleware.MakeMiddleware(logger))
+			srv := server.NewServer(config.Config{}, handler, middleware.MakeMiddleware(logger, authService))
 
 			// 3. Формирование запроса
 			body, err := json.Marshal(tt.request)

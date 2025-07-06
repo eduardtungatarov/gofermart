@@ -5,10 +5,13 @@ import (
 	"os"
 )
 
+type UserIDKey string
+
 const (
-	DefaultRunADDR           = "localhost:8081"
-	DefaultDatabaseURI       = "host=localhost port=5432 user=myuser password=mypassword dbname=mydatabase sslmode=disable"
-	DefaultAccrualSystemADRR = ""
+	DefaultRunADDR                     = "localhost:8081"
+	DefaultDatabaseURI                 = "host=localhost port=5432 user=myuser password=mypassword dbname=mydatabase sslmode=disable"
+	DefaultAccrualSystemADRR           = ""
+	UserIDKeyName            UserIDKey = "userId"
 )
 
 type Config struct {

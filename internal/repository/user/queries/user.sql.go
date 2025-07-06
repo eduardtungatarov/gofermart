@@ -10,81 +10,40 @@ import (
 )
 
 const FindUserByLogin = `-- name: FindUserByLogin :one
-SELECT id, login, password, token FROM users
+SELECT id, login, password FROM users
 WHERE login = $1 LIMIT 1
 `
 
 // FindUserByLogin
 //
-//	SELECT id, login, password, token FROM users
+//	SELECT id, login, password FROM users
 //	WHERE login = $1 LIMIT 1
 func (q *Queries) FindUserByLogin(ctx context.Context, db DBTX, login string) (User, error) {
 	row := db.QueryRowContext(ctx, FindUserByLogin, login)
 	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Login,
-		&i.Password,
-		&i.Token,
-	)
+	err := row.Scan(&i.ID, &i.Login, &i.Password)
 	return i, err
 }
 
 const SaveUser = `-- name: SaveUser :one
-INSERT INTO users (login, password, token)
-VALUES ($1, $2, $3)
-RETURNING id, login, password, token
+INSERT INTO users (login, password)
+VALUES ($1, $2)
+RETURNING id, login, password
 `
 
 type SaveUserParams struct {
 	Login    string
 	Password string
-	Token    string
 }
 
 // SaveUser
 //
-//	INSERT INTO users (login, password, token)
-//	VALUES ($1, $2, $3)
-//	RETURNING id, login, password, token
+//	INSERT INTO users (login, password)
+//	VALUES ($1, $2)
+//	RETURNING id, login, password
 func (q *Queries) SaveUser(ctx context.Context, db DBTX, arg SaveUserParams) (User, error) {
-	row := db.QueryRowContext(ctx, SaveUser, arg.Login, arg.Password, arg.Token)
+	row := db.QueryRowContext(ctx, SaveUser, arg.Login, arg.Password)
 	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Login,
-		&i.Password,
-		&i.Token,
-	)
-	return i, err
-}
-
-const UpdateTokenByUser = `-- name: UpdateTokenByUser :one
-UPDATE users
-SET token = $1
-WHERE login = $2
-RETURNING id, login, password, token
-`
-
-type UpdateTokenByUserParams struct {
-	Token string
-	Login string
-}
-
-// UpdateTokenByUser
-//
-//	UPDATE users
-//	SET token = $1
-//	WHERE login = $2
-//	RETURNING id, login, password, token
-func (q *Queries) UpdateTokenByUser(ctx context.Context, db DBTX, arg UpdateTokenByUserParams) (User, error) {
-	row := db.QueryRowContext(ctx, UpdateTokenByUser, arg.Token, arg.Login)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Login,
-		&i.Password,
-		&i.Token,
-	)
+	err := row.Scan(&i.ID, &i.Login, &i.Password)
 	return i, err
 }

@@ -62,7 +62,7 @@ func (h *Handler) PostUserRegister(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res.Header().Set("Authorization", fmt.Sprintf("ApiKey %s", token))
+	res.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	res.WriteHeader(http.StatusOK)
 }
 
@@ -97,10 +97,9 @@ func (h *Handler) PostUserLogin(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res.Header().Set("Authorization", fmt.Sprintf("ApiKey %s", token))
+	res.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	res.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) PostUserOrders(res http.ResponseWriter, req *http.Request) {
-
 }

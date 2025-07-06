@@ -4,11 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/eduardtungatarov/gofermart/internal/repository/user/queries"
-	"github.com/google/uuid"
+)
+
+const (
+	secretKey     = "supersecretkey"
+	tokenLifeTime = 24 * time.Hour
 )
 
 var ErrLoginPwd = errors.New("invalid username/password pair")
@@ -17,7 +24,11 @@ var ErrLoginPwd = errors.New("invalid username/password pair")
 type UserRepository interface {
 	SaveUser(ctx context.Context, user queries.User) (queries.User, error)
 	FindUserByLogin(ctx context.Context, login string) (queries.User, error)
-	UpdateTokenByLogin(ctx context.Context, login, token string) (queries.User, error)
+}
+
+type Claims struct {
+	jwt.RegisteredClaims
+	UserID int
 }
 
 type Service struct {
@@ -36,18 +47,20 @@ func (s *Service) Register(ctx context.Context, login, pwd string) (string, erro
 		return "", fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	token := s.generateTokenAndGet()
-
-	insertedUser, err := s.userRepo.SaveUser(ctx, queries.User{
+	user, err := s.userRepo.SaveUser(ctx, queries.User{
 		Login:    login,
 		Password: hashedPassword,
-		Token:    token,
 	})
 	if err != nil {
 		return "", err
 	}
 
-	return insertedUser.Token, nil
+	token, err := s.buildJWTString(int(user.ID))
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (s *Service) Login(ctx context.Context, login, pwd string) (string, error) {
@@ -60,14 +73,32 @@ func (s *Service) Login(ctx context.Context, login, pwd string) (string, error) 
 		return "", ErrLoginPwd
 	}
 
-	token := s.generateTokenAndGet()
-
-	_, err = s.userRepo.UpdateTokenByLogin(ctx, user.Login, token)
+	token, err := s.buildJWTString(int(user.ID))
 	if err != nil {
 		return "", err
 	}
 
-	return user.Token, nil
+	return token, nil
+}
+
+func (s *Service) GetUserIDByToken(tokenStr string) (int, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenStr, claims,
+		func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
+			return []byte(secretKey), nil
+		})
+	if err != nil {
+		return 0, err
+	}
+
+	if !token.Valid {
+		return 0, errors.New("auth token is not valid")
+	}
+
+	return claims.UserID, nil
 }
 
 func (s *Service) getHashedPwd(pwd string) (string, error) {
@@ -83,6 +114,20 @@ func (s *Service) checkPasswordHash(pwd, hash string) bool {
 	return err == nil
 }
 
-func (s *Service) generateTokenAndGet() string {
-	return uuid.NewString()
+func (s *Service) buildJWTString(userID int) (string, error) {
+	expirationTime := time.Now().Add(tokenLifeTime)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+		UserID: userID,
+	})
+
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

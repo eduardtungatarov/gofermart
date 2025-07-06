@@ -44,7 +44,7 @@ func main() {
 
 	// Запускаем сервер, указываем хендлеры и миддлваре.
 	h := handlers.MakeHandler(log, authSrv)
-	m := middleware.MakeMiddleware(log)
+	m := middleware.MakeMiddleware(log, authSrv)
 	s := server.NewServer(cfg, h, m)
 	err = s.Run()
 	if err != nil {

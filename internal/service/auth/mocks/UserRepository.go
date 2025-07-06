@@ -70,34 +70,6 @@ func (_m *UserRepository) SaveUser(ctx context.Context, user queries.User) (quer
 	return r0, r1
 }
 
-// UpdateTokenByLogin provides a mock function with given fields: ctx, login, token
-func (_m *UserRepository) UpdateTokenByLogin(ctx context.Context, login string, token string) (queries.User, error) {
-	ret := _m.Called(ctx, login, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateTokenByLogin")
-	}
-
-	var r0 queries.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (queries.User, error)); ok {
-		return rf(ctx, login, token)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) queries.User); ok {
-		r0 = rf(ctx, login, token)
-	} else {
-		r0 = ret.Get(0).(queries.User)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, login, token)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // NewUserRepository creates a new instance of UserRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserRepository(t interface {

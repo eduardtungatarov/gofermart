@@ -40,10 +40,13 @@ func (s *Server) GetRouter() chi.Router {
 		s.h.PostUserLogin,
 	)
 
-	r.With(s.m.WithTextPlainReqCheck).Post(
-		"/api/user/orders",
-		s.h.PostUserOrders,
-	)
+	r.Group(func(r chi.Router) {
+		r.Use(s.m.WithAuth)
+		r.With(s.m.WithTextPlainReqCheck).Post(
+			"/api/user/orders",
+			s.h.PostUserOrders,
+		)
+	})
 
 	return r
 }
