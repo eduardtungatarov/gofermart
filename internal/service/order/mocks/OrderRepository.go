@@ -15,6 +15,36 @@ type OrderRepository struct {
 	mock.Mock
 }
 
+// FindByUserId provides a mock function with given fields: ctx, userID
+func (_m *OrderRepository) FindByUserId(ctx context.Context, userID int) ([]queries.Order, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindByUserId")
+	}
+
+	var r0 []queries.Order
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]queries.Order, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) []queries.Order); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]queries.Order)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindOrderByOrderNumber provides a mock function with given fields: ctx, orderNumber
 func (_m *OrderRepository) FindOrderByOrderNumber(ctx context.Context, orderNumber string) (queries.Order, error) {
 	ret := _m.Called(ctx, orderNumber)

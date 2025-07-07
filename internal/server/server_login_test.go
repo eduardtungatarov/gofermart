@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
+	authMocks "github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
 	orderMocks "github.com/eduardtungatarov/gofermart/internal/service/order/mocks"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
@@ -35,7 +35,7 @@ func TestLoginEndpoint(t *testing.T) {
 	tests := []struct {
 		name           string
 		request        map[string]string
-		mockBehavior   func(*mocks.UserRepository)
+		mockBehavior   func(*authMocks.UserRepository)
 		expectedStatus int
 		wantToken      bool
 	}{
@@ -45,7 +45,7 @@ func TestLoginEndpoint(t *testing.T) {
 				"login":    "valid_user",
 				"password": "valid_password",
 			},
-			mockBehavior: func(m *mocks.UserRepository) {
+			mockBehavior: func(m *authMocks.UserRepository) {
 				m.On("FindUserByLogin", mock.Anything, "valid_user").Return(validUser, nil)
 			},
 			expectedStatus: http.StatusOK,
@@ -57,7 +57,7 @@ func TestLoginEndpoint(t *testing.T) {
 				"login":    "valid_user",
 				"password": "wrong_password",
 			},
-			mockBehavior: func(m *mocks.UserRepository) {
+			mockBehavior: func(m *authMocks.UserRepository) {
 				m.On("FindUserByLogin", mock.Anything, "valid_user").Return(validUser, nil)
 			},
 			expectedStatus: http.StatusUnauthorized,
@@ -68,7 +68,7 @@ func TestLoginEndpoint(t *testing.T) {
 				"login":    "unknown_user",
 				"password": "any_password",
 			},
-			mockBehavior: func(m *mocks.UserRepository) {
+			mockBehavior: func(m *authMocks.UserRepository) {
 				m.On("FindUserByLogin", mock.Anything, "unknown_user").
 					Return(queries.User{}, sql.ErrNoRows)
 			},
@@ -95,7 +95,7 @@ func TestLoginEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// 1. Инициализация моков
-			repo := new(mocks.UserRepository)
+			repo := new(authMocks.UserRepository)
 			orderRepo := orderMocks.NewOrderRepository(t)
 			if tt.mockBehavior != nil {
 				tt.mockBehavior(repo)

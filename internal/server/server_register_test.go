@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
+	authMocks "github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
 	orderMocks "github.com/eduardtungatarov/gofermart/internal/service/order/mocks"
 
 	"github.com/eduardtungatarov/gofermart/internal/repository/user"
@@ -31,16 +31,16 @@ func TestRegisterEndpoint(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		setupMock      func(*mocks.UserRepository)
+		setupMock      func(*authMocks.UserRepository)
 		requestBody    map[string]string
 		contentType    string
 		expectedStatus int
 		checkResponse  func(*testing.T, *http.Response)
-		checkMock      func(*testing.T, *mocks.UserRepository)
+		checkMock      func(*testing.T, *authMocks.UserRepository)
 	}{
 		{
 			name: "successful_registration",
-			setupMock: func(repo *mocks.UserRepository) {
+			setupMock: func(repo *authMocks.UserRepository) {
 				repo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
 					Return(queries.User{ID: 1}, nil)
 			},
@@ -53,13 +53,13 @@ func TestRegisterEndpoint(t *testing.T) {
 			checkResponse: func(t *testing.T, resp *http.Response) {
 				assert.NotEmpty(t, resp.Header.Get("Authorization"), "токен не должен быть пустым")
 			},
-			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+			checkMock: func(t *testing.T, repo *authMocks.UserRepository) {
 				repo.AssertExpectations(t)
 			},
 		},
 		{
 			name: "user_already_exists",
-			setupMock: func(repo *mocks.UserRepository) {
+			setupMock: func(repo *authMocks.UserRepository) {
 				repo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
 					Return(queries.User{}, user.ErrUserAlreadyExists)
 			},
@@ -69,38 +69,38 @@ func TestRegisterEndpoint(t *testing.T) {
 			},
 			contentType:    "application/json",
 			expectedStatus: http.StatusConflict,
-			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+			checkMock: func(t *testing.T, repo *authMocks.UserRepository) {
 				repo.AssertExpectations(t)
 			},
 		},
 		{
 			name:      "invalid_request_missing_fields",
-			setupMock: func(repo *mocks.UserRepository) {},
+			setupMock: func(repo *authMocks.UserRepository) {},
 			requestBody: map[string]string{
 				"login": "testuser",
 			},
 			contentType:    "application/json",
 			expectedStatus: http.StatusBadRequest,
-			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+			checkMock: func(t *testing.T, repo *authMocks.UserRepository) {
 				repo.AssertNotCalled(t, "SaveUser")
 			},
 		},
 		{
 			name:      "invalid_request_wrong_content_type",
-			setupMock: func(repo *mocks.UserRepository) {},
+			setupMock: func(repo *authMocks.UserRepository) {},
 			requestBody: map[string]string{
 				"login":    "testuser",
 				"password": "testpass",
 			},
 			contentType:    "text/plain",
 			expectedStatus: http.StatusBadRequest,
-			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+			checkMock: func(t *testing.T, repo *authMocks.UserRepository) {
 				repo.AssertNotCalled(t, "SaveUser")
 			},
 		},
 		{
 			name: "internal_server_error",
-			setupMock: func(repo *mocks.UserRepository) {
+			setupMock: func(repo *authMocks.UserRepository) {
 				repo.On("SaveUser", mock.Anything, mock.AnythingOfType("queries.User")).
 					Return(queries.User{}, errors.New("database error"))
 			},
@@ -110,7 +110,7 @@ func TestRegisterEndpoint(t *testing.T) {
 			},
 			contentType:    "application/json",
 			expectedStatus: http.StatusInternalServerError,
-			checkMock: func(t *testing.T, repo *mocks.UserRepository) {
+			checkMock: func(t *testing.T, repo *authMocks.UserRepository) {
 				repo.AssertExpectations(t)
 			},
 		},
@@ -119,7 +119,7 @@ func TestRegisterEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Настраиваем мок репозитория
-			userRepo := mocks.NewUserRepository(t)
+			userRepo := authMocks.NewUserRepository(t)
 			orderRepo := orderMocks.NewOrderRepository(t)
 			tt.setupMock(userRepo)
 

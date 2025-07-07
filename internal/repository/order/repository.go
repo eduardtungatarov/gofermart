@@ -57,3 +57,11 @@ func (r *Repository) FindOrderByOrderNumber(ctx context.Context, orderNumber str
 
 	return model, nil
 }
+
+func (r *Repository) FindByUserId(ctx context.Context, userID int) ([]queries.Order, error) {
+	models, err := r.querier.FindByUserId(ctx, r.db, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find order by userID: %w", err)
+	}
+	return models, nil
+}

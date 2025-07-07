@@ -6,3 +6,8 @@ RETURNING *;
 -- name: FindOrderByOrderNumber :one
 SELECT * FROM orders
 WHERE order_number = sqlc.arg(order_number) LIMIT 1;
+
+-- name: FindByUserId :many
+SELECT * FROM orders
+WHERE user_id = sqlc.arg(user_id)
+ORDER BY uploaded_at desc;

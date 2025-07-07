@@ -8,7 +8,10 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 	"unicode"
+
+	"github.com/eduardtungatarov/gofermart/internal/repository/order/queries"
 
 	"github.com/eduardtungatarov/gofermart/internal/service/order"
 
@@ -19,13 +22,16 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockery --name=AuthService
 type AuthService interface {
 	Register(ctx context.Context, login, pwd string) (string, error)
 	Login(ctx context.Context, login, pwd string) (string, error)
 }
 
+//go:generate mockery --name=OrderService
 type OrderService interface {
 	PostUserOrders(ctx context.Context, orderNumber string) error
+	GetUserOrders(ctx context.Context) ([]queries.Order, error)
 }
 
 type Handler struct {
@@ -149,6 +155,40 @@ func (h *Handler) PostUserOrders(res http.ResponseWriter, req *http.Request) {
 
 	res.WriteHeader(http.StatusAccepted)
 	return
+}
+
+func (h *Handler) GetUserOrders(res http.ResponseWriter, req *http.Request) {
+	orders, err := h.orderService.GetUserOrders(req.Context())
+	if err != nil {
+		h.log.Infof("orderService.GetUserOrders fail: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if len(orders) == 0 {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	var ordersResp []OrderResp
+	for _, v := range orders {
+		ordersResp = append(ordersResp, OrderResp{
+			Number:     v.OrderNumber,
+			Status:     v.Status,
+			Accrual:    v.Accrual,
+			UploadedAt: v.UploadedAt.Time.Format(time.RFC3339),
+		})
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+
+	enc := json.NewEncoder(res)
+	if err := enc.Encode(ordersResp); err != nil {
+		h.log.Infof("encode response fail: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *Handler) isValidLuhn(number string) bool {

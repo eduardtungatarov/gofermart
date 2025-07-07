@@ -46,6 +46,10 @@ func (s *Server) GetRouter() chi.Router {
 			"/api/user/orders",
 			s.h.PostUserOrders,
 		)
+		r.Get(
+			"/api/user/orders",
+			s.h.GetUserOrders,
+		)
 	})
 
 	return r

@@ -9,6 +9,12 @@ import (
 )
 
 type Querier interface {
+	//FindByUserId
+	//
+	//  SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
+	//  WHERE user_id = $1
+	//  ORDER BY uploaded_at desc
+	FindByUserId(ctx context.Context, db DBTX, userID int) ([]Order, error)
 	//FindOrderByOrderNumber
 	//
 	//  SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders

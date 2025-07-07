@@ -24,6 +24,7 @@ var (
 type OrderRepository interface {
 	SaveOrder(ctx context.Context, order queries.Order) (queries.Order, error)
 	FindOrderByOrderNumber(ctx context.Context, orderNumber string) (queries.Order, error)
+	FindByUserId(ctx context.Context, userID int) ([]queries.Order, error)
 }
 
 type Service struct {
@@ -39,7 +40,7 @@ func New(orderRepo OrderRepository) *Service {
 func (s *Service) PostUserOrders(ctx context.Context, orderNumber string) error {
 	userID, err := utils.GetUserID(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed GetUserID from ctx: %w", err)
 	}
 
 	_, err = s.orderRepo.SaveOrder(ctx, queries.Order{
@@ -67,4 +68,18 @@ func (s *Service) PostUserOrders(ctx context.Context, orderNumber string) error 
 	}
 
 	return nil
+}
+
+func (s *Service) GetUserOrders(ctx context.Context) ([]queries.Order, error) {
+	userID, err := utils.GetUserID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetUserID from ctx: %w", err)
+	}
+
+	orders, err := s.orderRepo.FindByUserId(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to FindByUserId: %w", err)
+	}
+
+	return orders, nil
 }

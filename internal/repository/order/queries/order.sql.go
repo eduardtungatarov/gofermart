@@ -9,6 +9,47 @@ import (
 	"context"
 )
 
+const FindByUserId = `-- name: FindByUserId :many
+SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
+WHERE user_id = $1
+ORDER BY uploaded_at desc
+`
+
+// FindByUserId
+//
+//	SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
+//	WHERE user_id = $1
+//	ORDER BY uploaded_at desc
+func (q *Queries) FindByUserId(ctx context.Context, db DBTX, userID int) ([]Order, error) {
+	rows, err := db.QueryContext(ctx, FindByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Order
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.OrderNumber,
+			&i.Status,
+			&i.Accrual,
+			&i.UploadedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const FindOrderByOrderNumber = `-- name: FindOrderByOrderNumber :one
 SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
 WHERE order_number = $1 LIMIT 1
