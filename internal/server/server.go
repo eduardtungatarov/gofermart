@@ -50,6 +50,10 @@ func (s *Server) GetRouter() chi.Router {
 			"/api/user/orders",
 			s.h.GetUserOrders,
 		)
+		r.Get(
+			"/api/user/balance",
+			s.h.GetUserBalance,
+		)
 	})
 
 	return r

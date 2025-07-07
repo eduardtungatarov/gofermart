@@ -11,7 +11,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/eduardtungatarov/gofermart/internal/repository/order/queries"
+	balanceQ "github.com/eduardtungatarov/gofermart/internal/repository/balance/queries"
+	orderQ "github.com/eduardtungatarov/gofermart/internal/repository/order/queries"
 
 	"github.com/eduardtungatarov/gofermart/internal/service/order"
 
@@ -31,20 +32,27 @@ type AuthService interface {
 //go:generate mockery --name=OrderService
 type OrderService interface {
 	PostUserOrders(ctx context.Context, orderNumber string) error
-	GetUserOrders(ctx context.Context) ([]queries.Order, error)
+	GetUserOrders(ctx context.Context) ([]orderQ.Order, error)
+}
+
+//go:generate mockery --name=BalanceService
+type BalanceService interface {
+	GetUserBalance(ctx context.Context) (balanceQ.Balance, error)
 }
 
 type Handler struct {
-	log          *zap.SugaredLogger
-	authService  AuthService
-	orderService OrderService
+	log            *zap.SugaredLogger
+	authService    AuthService
+	orderService   OrderService
+	balanceService BalanceService
 }
 
-func MakeHandler(log *zap.SugaredLogger, authService AuthService, orderService OrderService) *Handler {
+func MakeHandler(log *zap.SugaredLogger, authService AuthService, orderService OrderService, balanceService BalanceService) *Handler {
 	return &Handler{
-		log:          log,
-		authService:  authService,
-		orderService: orderService,
+		log:            log,
+		authService:    authService,
+		orderService:   orderService,
+		balanceService: balanceService,
 	}
 }
 
@@ -185,6 +193,30 @@ func (h *Handler) GetUserOrders(res http.ResponseWriter, req *http.Request) {
 
 	enc := json.NewEncoder(res)
 	if err := enc.Encode(ordersResp); err != nil {
+		h.log.Infof("encode response fail: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) GetUserBalance(res http.ResponseWriter, req *http.Request) {
+	balance, err := h.balanceService.GetUserBalance(req.Context())
+	if err != nil {
+		h.log.Infof("balanceService.GetUserBalance fail: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp := BalanceResp{
+		Current:   balance.Current,
+		Withdrawn: balance.Withdrawn,
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+
+	enc := json.NewEncoder(res)
+	if err := enc.Encode(resp); err != nil {
 		h.log.Infof("encode response fail: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return

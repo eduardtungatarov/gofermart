@@ -8,10 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	authMocks "github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
-	orderMocks "github.com/eduardtungatarov/gofermart/internal/service/order/mocks"
-
 	"github.com/eduardtungatarov/gofermart/internal/repository/user"
+	authMocks "github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
 	"github.com/eduardtungatarov/gofermart/internal/handlers"
@@ -19,7 +17,6 @@ import (
 	"github.com/eduardtungatarov/gofermart/internal/repository/user/queries"
 	"github.com/eduardtungatarov/gofermart/internal/server"
 	"github.com/eduardtungatarov/gofermart/internal/service/auth"
-	"github.com/eduardtungatarov/gofermart/internal/service/order"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -120,13 +117,11 @@ func TestRegisterEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Настраиваем мок репозитория
 			userRepo := authMocks.NewUserRepository(t)
-			orderRepo := orderMocks.NewOrderRepository(t)
 			tt.setupMock(userRepo)
 
 			// Собираем сервисы
 			authSrv := auth.New(userRepo)
-			orderSrv := order.New(orderRepo)
-			h := handlers.MakeHandler(logger, authSrv, orderSrv)
+			h := handlers.MakeHandler(logger, authSrv, nil, nil)
 			m := middleware.MakeMiddleware(logger, authSrv)
 			s := server.NewServer(cfg, h, m)
 

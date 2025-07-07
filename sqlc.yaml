@@ -25,3 +25,10 @@ sql:
       go:
         <<: *gen_settings
         out: "internal/repository/order/queries"
+  # Для Balance
+  - <<: *base_settings
+    queries: "queries/balance.sql"
+    gen:
+      go:
+        <<: *gen_settings
+        out: "internal/repository/balance/queries"

@@ -10,16 +10,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	authMocks "github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
-	orderMocks "github.com/eduardtungatarov/gofermart/internal/service/order/mocks"
-
 	"github.com/eduardtungatarov/gofermart/internal/config"
 	"github.com/eduardtungatarov/gofermart/internal/handlers"
 	"github.com/eduardtungatarov/gofermart/internal/middleware"
 	"github.com/eduardtungatarov/gofermart/internal/repository/user/queries"
 	"github.com/eduardtungatarov/gofermart/internal/server"
 	"github.com/eduardtungatarov/gofermart/internal/service/auth"
-	"github.com/eduardtungatarov/gofermart/internal/service/order"
+	authMocks "github.com/eduardtungatarov/gofermart/internal/service/auth/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -96,7 +93,6 @@ func TestLoginEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// 1. Инициализация моков
 			repo := new(authMocks.UserRepository)
-			orderRepo := orderMocks.NewOrderRepository(t)
 			if tt.mockBehavior != nil {
 				tt.mockBehavior(repo)
 			}
@@ -104,9 +100,8 @@ func TestLoginEndpoint(t *testing.T) {
 			// 2. Создание тестового сервера
 			logger := zap.NewNop().Sugar()
 			authService := auth.New(repo)
-			orderService := order.New(orderRepo)
 
-			handler := handlers.MakeHandler(logger, authService, orderService)
+			handler := handlers.MakeHandler(logger, authService, nil, nil)
 			srv := server.NewServer(config.Config{}, handler, middleware.MakeMiddleware(logger, authService))
 
 			// 3. Формирование запроса

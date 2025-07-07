@@ -14,9 +14,6 @@ import (
 )
 
 func TestWithAuth(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
-	sugar := logger.Sugar()
-
 	testCases := []struct {
 		name           string
 		setupMock      func(*mocks.AuthService)
@@ -58,7 +55,7 @@ func TestWithAuth(t *testing.T) {
 			mockAuthService := mocks.NewAuthService(t)
 			tc.setupMock(mockAuthService)
 
-			mw := middleware.MakeMiddleware(sugar, mockAuthService)
+			mw := middleware.MakeMiddleware(zap.NewNop().Sugar(), mockAuthService)
 
 			handlerCalled := false
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

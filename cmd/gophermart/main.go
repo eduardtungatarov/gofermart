@@ -7,10 +7,12 @@ import (
 	"github.com/eduardtungatarov/gofermart/internal/handlers"
 	"github.com/eduardtungatarov/gofermart/internal/logger"
 	"github.com/eduardtungatarov/gofermart/internal/middleware"
+	balanceRepository "github.com/eduardtungatarov/gofermart/internal/repository/balance"
 	orderRepository "github.com/eduardtungatarov/gofermart/internal/repository/order"
 	userRepository "github.com/eduardtungatarov/gofermart/internal/repository/user"
 	"github.com/eduardtungatarov/gofermart/internal/server"
 	authService "github.com/eduardtungatarov/gofermart/internal/service/auth"
+	balanceService "github.com/eduardtungatarov/gofermart/internal/service/balance"
 	orderService "github.com/eduardtungatarov/gofermart/internal/service/order"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
@@ -43,11 +45,13 @@ func main() {
 	// Собираем дерево зависимостей.
 	userRepo := userRepository.New(db)
 	orderRepo := orderRepository.New(db)
+	balanceRepo := balanceRepository.New(db)
 	authSrv := authService.New(userRepo)
 	orderSrv := orderService.New(orderRepo)
+	balanceSrv := balanceService.New(balanceRepo)
 
 	// Запускаем сервер, указываем хендлеры и миддлваре.
-	h := handlers.MakeHandler(log, authSrv, orderSrv)
+	h := handlers.MakeHandler(log, authSrv, orderSrv, balanceSrv)
 	m := middleware.MakeMiddleware(log, authSrv)
 	s := server.NewServer(cfg, h, m)
 	err = s.Run()
