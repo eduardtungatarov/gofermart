@@ -49,7 +49,6 @@ func (s *Service) PostUserOrders(ctx context.Context, orderNumber string) error 
 		Status:      STATUS_NEW,
 		Accrual:     0,
 	})
-
 	if err != nil {
 		if errors.Is(err, order.ErrOrderAlreadyExists) {
 			orderModel, err := s.orderRepo.FindOrderByOrderNumber(ctx, orderNumber)

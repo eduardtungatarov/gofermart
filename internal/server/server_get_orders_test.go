@@ -75,9 +75,10 @@ func TestGetUserOrders(t *testing.T) {
 			// Создаем обработчик
 			handler := handlers.MakeHandler(
 				zap.NewNop().Sugar(),
-				nil, // authService не нужен для этого теста
+				nil,
 				mockOrderService,
-				nil, // balanceService не нужен для этого теста
+				nil,
+				nil,
 			)
 
 			// Создаем сервер

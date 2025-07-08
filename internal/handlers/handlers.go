@@ -11,6 +11,8 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/eduardtungatarov/gofermart/internal/repository/withdrawal/queries"
+
 	balanceQ "github.com/eduardtungatarov/gofermart/internal/repository/balance/queries"
 	orderQ "github.com/eduardtungatarov/gofermart/internal/repository/order/queries"
 
@@ -40,19 +42,32 @@ type BalanceService interface {
 	GetUserBalance(ctx context.Context) (balanceQ.Balance, error)
 }
 
-type Handler struct {
-	log            *zap.SugaredLogger
-	authService    AuthService
-	orderService   OrderService
-	balanceService BalanceService
+//go:generate mockery --name=WithdrawalService
+type WithdrawalService interface {
+	GetUserWithdrawals(ctx context.Context) ([]queries.Withdrawal, error)
 }
 
-func MakeHandler(log *zap.SugaredLogger, authService AuthService, orderService OrderService, balanceService BalanceService) *Handler {
+type Handler struct {
+	log               *zap.SugaredLogger
+	authService       AuthService
+	orderService      OrderService
+	balanceService    BalanceService
+	withdrawalService WithdrawalService
+}
+
+func MakeHandler(
+	log *zap.SugaredLogger,
+	authService AuthService,
+	orderService OrderService,
+	balanceService BalanceService,
+	withdrawalService WithdrawalService,
+) *Handler {
 	return &Handler{
-		log:            log,
-		authService:    authService,
-		orderService:   orderService,
-		balanceService: balanceService,
+		log:               log,
+		authService:       authService,
+		orderService:      orderService,
+		balanceService:    balanceService,
+		withdrawalService: withdrawalService,
 	}
 }
 
@@ -221,6 +236,43 @@ func (h *Handler) GetUserBalance(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) GetUserBalanceWithdraw(res http.ResponseWriter, req *http.Request) {
+	withdrawals, err := h.withdrawalService.GetUserWithdrawals(req.Context())
+	if err != nil {
+		h.log.Infof("withdrawalService.GetUserWithdrawals: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if len(withdrawals) == 0 {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	var withdrawalsResp []WithdrawalResp
+	for _, v := range withdrawals {
+		withdrawalsResp = append(withdrawalsResp, WithdrawalResp{
+			Order:       v.OrderNumber,
+			Sum:         v.Sum,
+			ProcessedAt: v.ProcessedAt.Time.Format(time.RFC3339),
+		})
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+
+	enc := json.NewEncoder(res)
+	if err := enc.Encode(withdrawalsResp); err != nil {
+		h.log.Infof("encode response fail: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) PostUserBalanceWithdraw(res http.ResponseWriter, req *http.Request) {
+	//
 }
 
 func (h *Handler) isValidLuhn(number string) bool {

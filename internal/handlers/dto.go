@@ -11,3 +11,9 @@ type BalanceResp struct {
 	Current   int `json:"current"`
 	Withdrawn int `json:"withdrawn"`
 }
+
+type WithdrawalResp struct {
+	Order       string `json:"order"`
+	Sum         int    `json:"sum"`
+	ProcessedAt string `json:"processed_at"`
+}

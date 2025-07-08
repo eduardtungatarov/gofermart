@@ -22,7 +22,6 @@ import (
 func TestServer_GetUserBalance(t *testing.T) {
 	tests := []struct {
 		name           string
-		setupAuth      bool
 		mockBalance    queries.Balance
 		mockError      error
 		expectedStatus int
@@ -30,7 +29,6 @@ func TestServer_GetUserBalance(t *testing.T) {
 	}{
 		{
 			name:           "successful_balance_retrieval",
-			setupAuth:      true,
 			mockBalance:    queries.Balance{Current: 105, Withdrawn: 20},
 			mockError:      nil,
 			expectedStatus: http.StatusOK,
@@ -38,7 +36,6 @@ func TestServer_GetUserBalance(t *testing.T) {
 		},
 		{
 			name:           "no_balance_record_found",
-			setupAuth:      true,
 			mockBalance:    queries.Balance{},
 			mockError:      nil,
 			expectedStatus: http.StatusOK,
@@ -46,7 +43,6 @@ func TestServer_GetUserBalance(t *testing.T) {
 		},
 		{
 			name:           "internal_server_error",
-			setupAuth:      true,
 			mockBalance:    queries.Balance{},
 			mockError:      assert.AnError,
 			expectedStatus: http.StatusInternalServerError,
@@ -57,17 +53,15 @@ func TestServer_GetUserBalance(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Настройка моков
 			balanceService := mocks.NewBalanceService(t)
-
-			if tt.setupAuth {
-				balanceService.On("GetUserBalance", mock.Anything).Return(tt.mockBalance, tt.mockError)
-			}
+			balanceService.On("GetUserBalance", mock.Anything).Return(tt.mockBalance, tt.mockError)
 
 			// Создание тестового обработчика
 			h := handlers.MakeHandler(
 				zap.NewNop().Sugar(),
-				nil, // authService не нужен для этого теста
-				nil, // orderService не нужен
+				nil,
+				nil,
 				balanceService,
+				nil,
 			)
 
 			// Создание тестового сервера
@@ -93,9 +87,7 @@ func TestServer_GetUserBalance(t *testing.T) {
 			}
 
 			// Проверка вызовов моков
-			if tt.setupAuth {
-				balanceService.AssertExpectations(t)
-			}
+			balanceService.AssertExpectations(t)
 		})
 	}
 }

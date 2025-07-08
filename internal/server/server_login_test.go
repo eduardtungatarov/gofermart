@@ -101,7 +101,7 @@ func TestLoginEndpoint(t *testing.T) {
 			logger := zap.NewNop().Sugar()
 			authService := auth.New(repo)
 
-			handler := handlers.MakeHandler(logger, authService, nil, nil)
+			handler := handlers.MakeHandler(logger, authService, nil, nil, nil)
 			srv := server.NewServer(config.Config{}, handler, middleware.MakeMiddleware(logger, authService))
 
 			// 3. Формирование запроса

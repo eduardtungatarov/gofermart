@@ -121,7 +121,7 @@ func TestRegisterEndpoint(t *testing.T) {
 
 			// Собираем сервисы
 			authSrv := auth.New(userRepo)
-			h := handlers.MakeHandler(logger, authSrv, nil, nil)
+			h := handlers.MakeHandler(logger, authSrv, nil, nil, nil)
 			m := middleware.MakeMiddleware(logger, authSrv)
 			s := server.NewServer(cfg, h, m)
 

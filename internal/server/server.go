@@ -54,6 +54,14 @@ func (s *Server) GetRouter() chi.Router {
 			"/api/user/balance",
 			s.h.GetUserBalance,
 		)
+		r.Get(
+			"/api/user/balance/withdraw",
+			s.h.GetUserBalanceWithdraw,
+		)
+		r.With(s.m.WithJSONReqCheck).Post(
+			"/api/user/balance/withdraw",
+			s.h.PostUserBalanceWithdraw,
+		)
 	})
 
 	return r

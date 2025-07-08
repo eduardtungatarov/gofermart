@@ -10,10 +10,12 @@ import (
 	balanceRepository "github.com/eduardtungatarov/gofermart/internal/repository/balance"
 	orderRepository "github.com/eduardtungatarov/gofermart/internal/repository/order"
 	userRepository "github.com/eduardtungatarov/gofermart/internal/repository/user"
+	withdrawalRepository "github.com/eduardtungatarov/gofermart/internal/repository/withdrawal"
 	"github.com/eduardtungatarov/gofermart/internal/server"
 	authService "github.com/eduardtungatarov/gofermart/internal/service/auth"
 	balanceService "github.com/eduardtungatarov/gofermart/internal/service/balance"
 	orderService "github.com/eduardtungatarov/gofermart/internal/service/order"
+	withdrawalService "github.com/eduardtungatarov/gofermart/internal/service/withdrawal"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
 
@@ -46,12 +48,14 @@ func main() {
 	userRepo := userRepository.New(db)
 	orderRepo := orderRepository.New(db)
 	balanceRepo := balanceRepository.New(db)
+	withdrawalRepo := withdrawalRepository.New(db)
 	authSrv := authService.New(userRepo)
 	orderSrv := orderService.New(orderRepo)
 	balanceSrv := balanceService.New(balanceRepo)
+	withdrawalSrv := withdrawalService.New(withdrawalRepo)
 
 	// Запускаем сервер, указываем хендлеры и миддлваре.
-	h := handlers.MakeHandler(log, authSrv, orderSrv, balanceSrv)
+	h := handlers.MakeHandler(log, authSrv, orderSrv, balanceSrv, withdrawalSrv)
 	m := middleware.MakeMiddleware(log, authSrv)
 	s := server.NewServer(cfg, h, m)
 	err = s.Run()

@@ -139,7 +139,7 @@ func TestServer_PostUserOrders(t *testing.T) {
 				Return(1, nil)
 
 			m := middleware.MakeMiddleware(logger, authSrv)
-			h := handlers.MakeHandler(logger, nil, orderService, nil)
+			h := handlers.MakeHandler(logger, nil, orderService, nil, nil)
 			srv := server.NewServer(config.Config{}, h, m)
 
 			req := httptest.NewRequest("POST", "/api/user/orders", bytes.NewBufferString(tt.args.body))
