@@ -201,7 +201,7 @@ func (h *Handler) GetUserOrders(res http.ResponseWriter, req *http.Request) {
 		ordersResp = append(ordersResp, OrderResp{
 			Number:     v.OrderNumber,
 			Status:     v.Status,
-			Accrual:    v.Accrual,
+			Accrual:    float64(v.Accrual) / 100,
 			UploadedAt: v.UploadedAt.Time.Format(time.RFC3339),
 		})
 	}
@@ -226,8 +226,8 @@ func (h *Handler) GetUserBalance(res http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := BalanceResp{
-		Current:   balance.Current,
-		Withdrawn: balance.Withdrawn,
+		Current:   float64(balance.Current) / 100,
+		Withdrawn: float64(balance.Withdrawn) / 100,
 	}
 
 	res.Header().Set("Content-Type", "application/json")
@@ -258,7 +258,7 @@ func (h *Handler) GetUserBalanceWithdraw(res http.ResponseWriter, req *http.Requ
 	for _, v := range withdrawals {
 		withdrawalsResp = append(withdrawalsResp, WithdrawalResp{
 			Order:       v.OrderNumber,
-			Sum:         v.Sum,
+			Sum:         float64(v.Sum) / 100,
 			ProcessedAt: v.ProcessedAt.Time.Format(time.RFC3339),
 		})
 	}
@@ -276,8 +276,8 @@ func (h *Handler) GetUserBalanceWithdraw(res http.ResponseWriter, req *http.Requ
 
 func (h *Handler) PostUserBalanceWithdraw(res http.ResponseWriter, req *http.Request) {
 	var reqStr struct {
-		Order string `json:"order"`
-		Sum   int    `json:"sum"`
+		Order string  `json:"order"`
+		Sum   float64 `json:"sum"`
 	}
 
 	defer req.Body.Close()
@@ -298,7 +298,7 @@ func (h *Handler) PostUserBalanceWithdraw(res http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err := h.withdrawalService.SaveWithdrawal(req.Context(), reqStr.Order, reqStr.Sum)
+	err := h.withdrawalService.SaveWithdrawal(req.Context(), reqStr.Order, int(reqStr.Sum*100))
 	if err != nil {
 		if errors.Is(err, withdrawal.ErrNoMoney) {
 			res.WriteHeader(http.StatusUnprocessableEntity)
