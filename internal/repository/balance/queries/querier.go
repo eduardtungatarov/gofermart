@@ -9,6 +9,13 @@ import (
 )
 
 type Querier interface {
+	//DeductFromBalance
+	//
+	//  UPDATE balance
+	//  SET withdrawn = withdrawn + $1, current = current - $1
+	//  WHERE user_id = $2
+	//  RETURNING id, user_id, current, withdrawn
+	DeductFromBalance(ctx context.Context, db DBTX, arg DeductFromBalanceParams) (Balance, error)
 	//FindByUserId
 	//
 	//  SELECT id, user_id, current, withdrawn FROM balance

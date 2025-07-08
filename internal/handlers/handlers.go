@@ -11,6 +11,8 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/eduardtungatarov/gofermart/internal/repository/withdrawal"
+
 	"github.com/eduardtungatarov/gofermart/internal/repository/withdrawal/queries"
 
 	balanceQ "github.com/eduardtungatarov/gofermart/internal/repository/balance/queries"
@@ -45,6 +47,7 @@ type BalanceService interface {
 //go:generate mockery --name=WithdrawalService
 type WithdrawalService interface {
 	GetUserWithdrawals(ctx context.Context) ([]queries.Withdrawal, error)
+	SaveWithdrawal(ctx context.Context, orderNumber string, sum int) error
 }
 
 type Handler struct {
@@ -272,7 +275,41 @@ func (h *Handler) GetUserBalanceWithdraw(res http.ResponseWriter, req *http.Requ
 }
 
 func (h *Handler) PostUserBalanceWithdraw(res http.ResponseWriter, req *http.Request) {
-	//
+	var reqStr struct {
+		Order string `json:"order"`
+		Sum   int    `json:"sum"`
+	}
+
+	defer req.Body.Close()
+	dec := json.NewDecoder(req.Body)
+	if err := dec.Decode(&reqStr); err != nil {
+		h.log.Infof("decode request body: %v", err)
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if reqStr.Order == "" || reqStr.Sum == 0 {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if !h.isValidLuhn(reqStr.Order) {
+		res.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	err := h.withdrawalService.SaveWithdrawal(req.Context(), reqStr.Order, reqStr.Sum)
+	if err != nil {
+		if errors.Is(err, withdrawal.ErrNoMoney) {
+			res.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+		h.log.Infof("withdrawalService.SaveWithdrawal: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) isValidLuhn(number string) bool {

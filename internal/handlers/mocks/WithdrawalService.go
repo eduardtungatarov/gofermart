@@ -45,6 +45,24 @@ func (_m *WithdrawalService) GetUserWithdrawals(ctx context.Context) ([]queries.
 	return r0, r1
 }
 
+// SaveWithdrawal provides a mock function with given fields: ctx, orderNumber, sum
+func (_m *WithdrawalService) SaveWithdrawal(ctx context.Context, orderNumber string, sum int) error {
+	ret := _m.Called(ctx, orderNumber, sum)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveWithdrawal")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) error); ok {
+		r0 = rf(ctx, orderNumber, sum)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewWithdrawalService creates a new instance of WithdrawalService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewWithdrawalService(t interface {

@@ -9,6 +9,36 @@ import (
 	"context"
 )
 
+const DeductFromBalance = `-- name: DeductFromBalance :one
+UPDATE balance
+SET withdrawn = withdrawn + $1, current = current - $1
+WHERE user_id = $2
+RETURNING id, user_id, current, withdrawn
+`
+
+type DeductFromBalanceParams struct {
+	Sum    int
+	UserID int
+}
+
+// DeductFromBalance
+//
+//	UPDATE balance
+//	SET withdrawn = withdrawn + $1, current = current - $1
+//	WHERE user_id = $2
+//	RETURNING id, user_id, current, withdrawn
+func (q *Queries) DeductFromBalance(ctx context.Context, db DBTX, arg DeductFromBalanceParams) (Balance, error) {
+	row := db.QueryRowContext(ctx, DeductFromBalance, arg.Sum, arg.UserID)
+	var i Balance
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Current,
+		&i.Withdrawn,
+	)
+	return i, err
+}
+
 const FindByUserId = `-- name: FindByUserId :one
 SELECT id, user_id, current, withdrawn FROM balance
 WHERE user_id = $1

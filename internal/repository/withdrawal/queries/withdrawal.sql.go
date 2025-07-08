@@ -48,3 +48,33 @@ func (q *Queries) FindByUserId(ctx context.Context, db DBTX, userID int) ([]With
 	}
 	return items, nil
 }
+
+const SaveWithdrawal = `-- name: SaveWithdrawal :one
+INSERT INTO withdrawals (user_id, order_number, sum)
+VALUES ($1, $2, $3)
+RETURNING id, user_id, order_number, sum, processed_at
+`
+
+type SaveWithdrawalParams struct {
+	UserID      int
+	OrderNumber string
+	Sum         int
+}
+
+// SaveWithdrawal
+//
+//	INSERT INTO withdrawals (user_id, order_number, sum)
+//	VALUES ($1, $2, $3)
+//	RETURNING id, user_id, order_number, sum, processed_at
+func (q *Queries) SaveWithdrawal(ctx context.Context, db DBTX, arg SaveWithdrawalParams) (Withdrawal, error) {
+	row := db.QueryRowContext(ctx, SaveWithdrawal, arg.UserID, arg.OrderNumber, arg.Sum)
+	var i Withdrawal
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.OrderNumber,
+		&i.Sum,
+		&i.ProcessedAt,
+	)
+	return i, err
+}

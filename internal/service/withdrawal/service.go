@@ -12,6 +12,7 @@ import (
 //go:generate mockery --name=WithdrawalRepository
 type WithdrawalRepository interface {
 	FindByUserId(ctx context.Context, userID int) ([]queries.Withdrawal, error)
+	SaveWithdrawal(ctx context.Context, withdrawal queries.Withdrawal) error
 }
 
 type Service struct {
@@ -36,4 +37,17 @@ func (s *Service) GetUserWithdrawals(ctx context.Context) ([]queries.Withdrawal,
 	}
 
 	return withdrawals, nil
+}
+
+func (s *Service) SaveWithdrawal(ctx context.Context, orderNumber string, sum int) error {
+	userID, err := utils.GetUserID(ctx)
+	if err != nil {
+		return fmt.Errorf("failed utils.GetUserID: %w", err)
+	}
+
+	return s.withdrawalRepo.SaveWithdrawal(ctx, queries.Withdrawal{
+		UserID:      userID,
+		OrderNumber: orderNumber,
+		Sum:         sum,
+	})
 }

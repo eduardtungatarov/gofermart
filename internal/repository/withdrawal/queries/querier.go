@@ -15,6 +15,12 @@ type Querier interface {
 	//  WHERE user_id = $1
 	//  ORDER BY processed_at desc
 	FindByUserId(ctx context.Context, db DBTX, userID int) ([]Withdrawal, error)
+	//SaveWithdrawal
+	//
+	//  INSERT INTO withdrawals (user_id, order_number, sum)
+	//  VALUES ($1, $2, $3)
+	//  RETURNING id, user_id, order_number, sum, processed_at
+	SaveWithdrawal(ctx context.Context, db DBTX, arg SaveWithdrawalParams) (Withdrawal, error)
 }
 
 var _ Querier = (*Queries)(nil)
