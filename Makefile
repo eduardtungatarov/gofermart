@@ -18,3 +18,6 @@ test:
 
 make gen-sql:
 	sqlc generate
+
+make push:
+	git add . && git commit --amend -m "t" && git push origin -f iter1

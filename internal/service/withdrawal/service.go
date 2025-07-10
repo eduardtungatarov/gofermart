@@ -11,7 +11,7 @@ import (
 
 //go:generate mockery --name=WithdrawalRepository
 type WithdrawalRepository interface {
-	FindByUserId(ctx context.Context, userID int) ([]queries.Withdrawal, error)
+	FindByUserID(ctx context.Context, userID int) ([]queries.Withdrawal, error)
 	SaveWithdrawal(ctx context.Context, withdrawal queries.Withdrawal) error
 }
 
@@ -31,7 +31,7 @@ func (s *Service) GetUserWithdrawals(ctx context.Context) ([]queries.Withdrawal,
 		return nil, fmt.Errorf("failed utils.GetUserID: %w", err)
 	}
 
-	withdrawals, err := s.withdrawalRepo.FindByUserId(ctx, userID)
+	withdrawals, err := s.withdrawalRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("withdrawalRepo.FindByUserId: %w", err)
 	}

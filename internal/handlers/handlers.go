@@ -180,7 +180,6 @@ func (h *Handler) PostUserOrders(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.WriteHeader(http.StatusAccepted)
-	return
 }
 
 func (h *Handler) GetUserOrders(res http.ResponseWriter, req *http.Request) {
@@ -301,7 +300,7 @@ func (h *Handler) PostUserBalanceWithdraw(res http.ResponseWriter, req *http.Req
 	err := h.withdrawalService.SaveWithdrawal(req.Context(), reqStr.Order, int(reqStr.Sum*100))
 	if err != nil {
 		if errors.Is(err, withdrawal.ErrNoMoney) {
-			res.WriteHeader(http.StatusUnprocessableEntity)
+			res.WriteHeader(http.StatusPaymentRequired)
 			return
 		}
 		h.log.Infof("withdrawalService.SaveWithdrawal: %v", err)

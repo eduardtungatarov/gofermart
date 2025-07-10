@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	STATUS_NEW = "NEW"
+	StatusNew     = "NEW"
+	StatusInvalid = "INVALID"
 )
 
 var (
@@ -24,9 +25,9 @@ var (
 type OrderRepository interface {
 	SaveOrder(ctx context.Context, order queries.Order) (queries.Order, error)
 	FindOrderByOrderNumber(ctx context.Context, orderNumber string) (queries.Order, error)
-	FindByUserId(ctx context.Context, userID int) ([]queries.Order, error)
+	FindByUserID(ctx context.Context, userID int) ([]queries.Order, error)
 	FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error)
-	UpdateOrder(ctx context.Context, orderNumber, status string, accrual int) error
+	UpdateOrder(ctx context.Context, userID int, orderNumber, status string, accrual int) error
 }
 
 type Service struct {
@@ -48,7 +49,7 @@ func (s *Service) PostUserOrders(ctx context.Context, orderNumber string) error 
 	_, err = s.orderRepo.SaveOrder(ctx, queries.Order{
 		UserID:      userID,
 		OrderNumber: orderNumber,
-		Status:      STATUS_NEW,
+		Status:      StatusNew,
 		Accrual:     0,
 	})
 	if err != nil {
@@ -77,7 +78,7 @@ func (s *Service) GetUserOrders(ctx context.Context) ([]queries.Order, error) {
 		return nil, fmt.Errorf("failed GetUserID from ctx: %w", err)
 	}
 
-	orders, err := s.orderRepo.FindByUserId(ctx, userID)
+	orders, err := s.orderRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to FindByUserId: %w", err)
 	}
@@ -93,8 +94,8 @@ func (s *Service) FindByInProgressStatuses(ctx context.Context) ([]queries.Order
 	return models, nil
 }
 
-func (s *Service) UpdateOrder(ctx context.Context, orderNumber, status string, accrual int) error {
-	err := s.orderRepo.UpdateOrder(ctx, orderNumber, status, accrual)
+func (s *Service) UpdateOrder(ctx context.Context, userID int, orderNumber, status string, accrual int) error {
+	err := s.orderRepo.UpdateOrder(ctx, userID, orderNumber, status, accrual)
 	if err != nil {
 		return fmt.Errorf("orderRepo.UpdateOrder: %w", err)
 	}

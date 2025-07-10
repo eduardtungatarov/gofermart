@@ -23,7 +23,7 @@ func New(db queries.DBTX) *Repository {
 	}
 }
 
-func (r *Repository) FindByUserId(ctx context.Context, userID int) (queries.Balance, error) {
+func (r *Repository) FindByUserID(ctx context.Context, userID int) (queries.Balance, error) {
 	model, err := r.querier.FindByUserId(ctx, r.db, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

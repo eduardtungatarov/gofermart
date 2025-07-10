@@ -9,6 +9,14 @@ import (
 )
 
 type Querier interface {
+	//AddBalance
+	//
+	//  INSERT INTO balance (user_id, current, withdrawn)
+	//  VALUES ($1, $2, 0)
+	//  ON CONFLICT (user_id)
+	//  DO UPDATE SET current = balance.current + EXCLUDED.current
+	//  RETURNING id, user_id, current, withdrawn
+	AddBalance(ctx context.Context, db DBTX, arg AddBalanceParams) (Balance, error)
 	//DeductFromBalance
 	//
 	//  UPDATE balance

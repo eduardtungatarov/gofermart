@@ -11,7 +11,7 @@ type UserIDKey string
 const (
 	DefaultRunADDR                     = "localhost:8081"
 	DefaultDatabaseURI                 = "host=localhost port=5432 user=myuser password=mypassword dbname=mydatabase sslmode=disable"
-	DefaultAccrualSystemADRR           = ""
+	DefaultAccrualSystemADRR           = "http://localhost:8080"
 	UserIDKeyName            UserIDKey = "userId"
 )
 

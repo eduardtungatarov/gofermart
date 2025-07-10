@@ -39,10 +39,7 @@ func (s *Server) Run(ctx context.Context) error {
 	case err := <-serverErr:
 		return err
 	case <-ctx.Done():
-		// Даем возможность серверу в течение 5 сек завершиться корректно.
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTime)
-		defer cancel()
-		return srv.Shutdown(shutdownCtx)
+		return srv.Shutdown(context.Background())
 	}
 }
 
@@ -73,7 +70,7 @@ func (s *Server) GetRouter() chi.Router {
 			s.h.GetUserBalance,
 		)
 		r.Get(
-			"/api/user/balance/withdraw",
+			"/api/user/withdrawals",
 			s.h.GetUserBalanceWithdraw,
 		)
 		r.With(s.m.WithJSONReqCheck).Post(

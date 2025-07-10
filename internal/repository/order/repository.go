@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	balanceQueries "github.com/eduardtungatarov/gofermart/internal/repository/balance/queries"
+
 	"github.com/eduardtungatarov/gofermart/internal/repository"
 
 	"github.com/jackc/pgerrcode"
@@ -17,14 +19,16 @@ import (
 var ErrOrderAlreadyExists = errors.New("order with this number already exists")
 
 type Repository struct {
-	db      queries.DBTX
-	querier queries.Querier
+	db             queries.DBTX
+	querier        queries.Querier
+	balanceQuerier balanceQueries.Querier
 }
 
 func New(db queries.DBTX) *Repository {
 	return &Repository{
-		db:      db,
-		querier: queries.New(),
+		db:             db,
+		querier:        queries.New(),
+		balanceQuerier: balanceQueries.New(),
 	}
 }
 
@@ -58,7 +62,7 @@ func (r *Repository) FindOrderByOrderNumber(ctx context.Context, orderNumber str
 	return model, nil
 }
 
-func (r *Repository) FindByUserId(ctx context.Context, userID int) ([]queries.Order, error) {
+func (r *Repository) FindByUserID(ctx context.Context, userID int) ([]queries.Order, error) {
 	models, err := r.querier.FindByUserId(ctx, r.db, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find order by userID: %w", err)
@@ -74,8 +78,18 @@ func (r *Repository) FindByInProgressStatuses(ctx context.Context) ([]queries.Or
 	return models, nil
 }
 
-func (r *Repository) UpdateOrder(ctx context.Context, orderNumber, status string, accrual int) error {
-	_, err := r.querier.UpdateOrder(ctx, r.db, queries.UpdateOrderParams{
+func (r *Repository) UpdateOrder(ctx context.Context, userID int, orderNumber, status string, accrual int) error {
+	db, ok := r.db.(*sql.DB)
+	if !ok {
+		return fmt.Errorf("db does not support transactions")
+	}
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("db.BeginTx: %w", err)
+	}
+	defer tx.Rollback()
+
+	_, err = r.querier.UpdateOrder(ctx, tx, queries.UpdateOrderParams{
 		OrderNumber: orderNumber,
 		Status:      status,
 		Accrual:     accrual,
@@ -84,5 +98,13 @@ func (r *Repository) UpdateOrder(ctx context.Context, orderNumber, status string
 		return fmt.Errorf("querier.UpdateOrder: %w", err)
 	}
 
-	return nil
+	_, err = r.balanceQuerier.AddBalance(ctx, tx, balanceQueries.AddBalanceParams{
+		Sum:    accrual,
+		UserID: userID,
+	})
+	if err != nil {
+		return fmt.Errorf("querier.UpdateOrder: %w", err)
+	}
+
+	return tx.Commit()
 }

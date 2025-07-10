@@ -14,7 +14,7 @@ import (
 
 //go:generate mockery --name=BalanceRepository
 type BalanceRepository interface {
-	FindByUserId(ctx context.Context, userID int) (queries.Balance, error)
+	FindByUserID(ctx context.Context, userID int) (queries.Balance, error)
 }
 
 type Service struct {
@@ -33,7 +33,7 @@ func (s *Service) GetUserBalance(ctx context.Context) (queries.Balance, error) {
 		return queries.Balance{}, fmt.Errorf("failed GetUserID from ctx: %w", err)
 	}
 
-	balance, err := s.balanceRepo.FindByUserId(ctx, userID)
+	balance, err := s.balanceRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNoModel) {
 			return queries.Balance{}, nil

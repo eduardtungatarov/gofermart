@@ -28,7 +28,7 @@ func New(db queries.DBTX) *Repository {
 	}
 }
 
-func (r *Repository) FindByUserId(ctx context.Context, userID int) ([]queries.Withdrawal, error) {
+func (r *Repository) FindByUserID(ctx context.Context, userID int) ([]queries.Withdrawal, error) {
 	models, err := r.querier.FindByUserId(ctx, r.db, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed querier.FindByUserId: %w", err)

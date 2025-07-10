@@ -9,6 +9,38 @@ import (
 	"context"
 )
 
+const AddBalance = `-- name: AddBalance :one
+INSERT INTO balance (user_id, current, withdrawn)
+VALUES ($1, $2, 0)
+ON CONFLICT (user_id)
+DO UPDATE SET current = balance.current + EXCLUDED.current
+RETURNING id, user_id, current, withdrawn
+`
+
+type AddBalanceParams struct {
+	UserID int
+	Sum    int
+}
+
+// AddBalance
+//
+//	INSERT INTO balance (user_id, current, withdrawn)
+//	VALUES ($1, $2, 0)
+//	ON CONFLICT (user_id)
+//	DO UPDATE SET current = balance.current + EXCLUDED.current
+//	RETURNING id, user_id, current, withdrawn
+func (q *Queries) AddBalance(ctx context.Context, db DBTX, arg AddBalanceParams) (Balance, error) {
+	row := db.QueryRowContext(ctx, AddBalance, arg.UserID, arg.Sum)
+	var i Balance
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Current,
+		&i.Withdrawn,
+	)
+	return i, err
+}
+
 const DeductFromBalance = `-- name: DeductFromBalance :one
 UPDATE balance
 SET withdrawn = withdrawn + $1, current = current - $1

@@ -2,8 +2,12 @@ package orderpoll
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/eduardtungatarov/gofermart/internal/service/order"
 
 	"github.com/eduardtungatarov/gofermart/internal/accrual"
 
@@ -17,11 +21,16 @@ import (
 //go:generate mockery --name=OrderService
 type OrderService interface {
 	FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error)
-	UpdateOrder(ctx context.Context, orderNumber, status string, accrual int) error
+	UpdateOrder(ctx context.Context, userID int, orderNumber, status string, accrual int) error
 }
 
 type AccrualClient interface {
 	GetOrder(orderNumber string) (*accrual.Order, error)
+}
+
+type OrderChValue struct {
+	OrderNumber string
+	UserID      int
 }
 
 type OrderPoll struct {
@@ -47,9 +56,9 @@ func New(log *zap.SugaredLogger, cfg config.Config, orderSrv OrderService, clien
 func (o *OrderPoll) Run(ctx context.Context) error {
 	pollCtx, cancel := context.WithCancel(ctx)
 	errChan := make(chan error, o.workerNum+1)
-	orderNumberCh := make(chan string, o.workerNum)
+	orderCh := make(chan OrderChValue, o.workerNum)
 
-	go func(ch chan<- string) {
+	go func(ch chan<- OrderChValue) {
 		defer close(ch)
 		for {
 			orders, err := o.orderSrv.FindByInProgressStatuses(pollCtx)
@@ -60,7 +69,10 @@ func (o *OrderPoll) Run(ctx context.Context) error {
 
 			for _, v := range orders {
 				select {
-				case ch <- v.OrderNumber:
+				case ch <- OrderChValue{
+					OrderNumber: v.OrderNumber,
+					UserID:      v.UserID,
+				}:
 				case <-pollCtx.Done():
 					return
 				}
@@ -72,33 +84,46 @@ func (o *OrderPoll) Run(ctx context.Context) error {
 				return
 			}
 		}
-	}(orderNumberCh)
+	}(orderCh)
 
 	for i := 0; i < o.workerNum; i++ {
-		go func(ch <-chan string) {
+		go func(ch <-chan OrderChValue) {
 			for {
 				select {
-				case orderNum, ok := <-orderNumberCh:
+				case orderChV, ok := <-orderCh:
 					if !ok {
 						return
 					}
+					//
 
-					resp, err := o.client.GetOrder(orderNum)
+					resp, err := o.client.GetOrder(orderChV.OrderNumber)
 					if err != nil {
-						o.log.Error("o.client.GetOrder err", err)
+						var nonOkErr *accrual.NonOkError
+						if ok := errors.As(err, &nonOkErr); ok {
+							if nonOkErr.Code == http.StatusNoContent {
+								err = o.orderSrv.UpdateOrder(pollCtx, orderChV.UserID, orderChV.OrderNumber, order.StatusInvalid, 0)
+								if err != nil {
+									errChan <- fmt.Errorf("orderSrv.UpdateOrder: %w", err)
+									return
+								}
+							}
+						}
+						o.log.Error("o.client.GetOrder net err", err)
 						return
 					}
 
-					err = o.orderSrv.UpdateOrder(pollCtx, orderNum, resp.Status, resp.Accrual)
+					err = o.orderSrv.UpdateOrder(pollCtx, orderChV.UserID, orderChV.OrderNumber, resp.Status, int(resp.Accrual*100))
 					if err != nil {
 						errChan <- fmt.Errorf("orderSrv.UpdateOrder: %w", err)
 						return
 					}
+
+					//
 				case <-pollCtx.Done():
 					return
 				}
 			}
-		}(orderNumberCh)
+		}(orderCh)
 	}
 
 	select {
