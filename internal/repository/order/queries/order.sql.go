@@ -9,6 +9,45 @@ import (
 	"context"
 )
 
+const FindByInProgressStatuses = `-- name: FindByInProgressStatuses :many
+SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
+WHERE status IN ('NEW', 'REGISTERED', 'PROCESSING') LIMIT 500
+`
+
+// FindByInProgressStatuses
+//
+//	SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
+//	WHERE status IN ('NEW', 'REGISTERED', 'PROCESSING') LIMIT 500
+func (q *Queries) FindByInProgressStatuses(ctx context.Context, db DBTX) ([]Order, error) {
+	rows, err := db.QueryContext(ctx, FindByInProgressStatuses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Order
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.OrderNumber,
+			&i.Status,
+			&i.Accrual,
+			&i.UploadedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const FindByUserId = `-- name: FindByUserId :many
 SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
 WHERE user_id = $1
@@ -98,6 +137,39 @@ func (q *Queries) SaveOrder(ctx context.Context, db DBTX, arg SaveOrderParams) (
 		arg.Status,
 		arg.Accrual,
 	)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.OrderNumber,
+		&i.Status,
+		&i.Accrual,
+		&i.UploadedAt,
+	)
+	return i, err
+}
+
+const UpdateOrder = `-- name: UpdateOrder :one
+UPDATE orders
+SET status = $1, accrual = $2
+WHERE order_number = $3
+RETURNING id, user_id, order_number, status, accrual, uploaded_at
+`
+
+type UpdateOrderParams struct {
+	Status      string
+	Accrual     int
+	OrderNumber string
+}
+
+// UpdateOrder
+//
+//	UPDATE orders
+//	SET status = $1, accrual = $2
+//	WHERE order_number = $3
+//	RETURNING id, user_id, order_number, status, accrual, uploaded_at
+func (q *Queries) UpdateOrder(ctx context.Context, db DBTX, arg UpdateOrderParams) (Order, error) {
+	row := db.QueryRowContext(ctx, UpdateOrder, arg.Status, arg.Accrual, arg.OrderNumber)
 	var i Order
 	err := row.Scan(
 		&i.ID,

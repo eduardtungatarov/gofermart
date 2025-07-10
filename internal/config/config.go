@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"os"
+	"time"
 )
 
 type UserIDKey string
@@ -18,10 +19,17 @@ type Config struct {
 	RunADDR     string
 	AccrualADDR string
 	Database
+	OrderPoll
+	ShutdownTime time.Duration // Время, которое даем для корректного завершения сервиса.
 }
 
 type Database struct {
 	DSN string
+}
+
+type OrderPoll struct {
+	PollSleepTime time.Duration
+	PollWorkerNum int
 }
 
 func Load() Config {
@@ -51,5 +59,10 @@ func Load() Config {
 		Database: Database{
 			DSN: *databaseURI,
 		},
+		OrderPoll: OrderPoll{
+			PollSleepTime: time.Second * 5,
+			PollWorkerNum: 10,
+		},
+		ShutdownTime: time.Second * 5,
 	}
 }

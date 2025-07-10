@@ -15,6 +15,36 @@ type OrderRepository struct {
 	mock.Mock
 }
 
+// FindByInProgressStatuses provides a mock function with given fields: ctx
+func (_m *OrderRepository) FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindByInProgressStatuses")
+	}
+
+	var r0 []queries.Order
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]queries.Order, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []queries.Order); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]queries.Order)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindByUserId provides a mock function with given fields: ctx, userID
 func (_m *OrderRepository) FindByUserId(ctx context.Context, userID int) ([]queries.Order, error) {
 	ret := _m.Called(ctx, userID)
@@ -99,6 +129,24 @@ func (_m *OrderRepository) SaveOrder(ctx context.Context, _a1 queries.Order) (qu
 	}
 
 	return r0, r1
+}
+
+// UpdateOrder provides a mock function with given fields: ctx, orderNumber, status, accrual
+func (_m *OrderRepository) UpdateOrder(ctx context.Context, orderNumber string, status string, accrual int) error {
+	ret := _m.Called(ctx, orderNumber, status, accrual)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateOrder")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) error); ok {
+		r0 = rf(ctx, orderNumber, status, accrual)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewOrderRepository creates a new instance of OrderRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

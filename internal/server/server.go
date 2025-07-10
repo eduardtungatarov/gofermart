@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
@@ -23,9 +24,26 @@ func NewServer(cfg config.Config, h *handlers.Handler, m *middleware.Middleware)
 	}
 }
 
-func (s *Server) Run() error {
-	r := s.GetRouter()
-	return http.ListenAndServe(s.cfg.RunADDR, r)
+func (s *Server) Run(ctx context.Context) error {
+	srv := &http.Server{
+		Addr:    s.cfg.RunADDR,
+		Handler: s.GetRouter(),
+	}
+
+	serverErr := make(chan error, 1)
+	go func() {
+		serverErr <- srv.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverErr:
+		return err
+	case <-ctx.Done():
+		// Даем возможность серверу в течение 5 сек завершиться корректно.
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTime)
+		defer cancel()
+		return srv.Shutdown(shutdownCtx)
+	}
 }
 
 func (s *Server) GetRouter() chi.Router {

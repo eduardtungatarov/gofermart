@@ -9,6 +9,11 @@ import (
 )
 
 type Querier interface {
+	//FindByInProgressStatuses
+	//
+	//  SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
+	//  WHERE status IN ('NEW', 'REGISTERED', 'PROCESSING') LIMIT 500
+	FindByInProgressStatuses(ctx context.Context, db DBTX) ([]Order, error)
 	//FindByUserId
 	//
 	//  SELECT id, user_id, order_number, status, accrual, uploaded_at FROM orders
@@ -26,6 +31,13 @@ type Querier interface {
 	//  VALUES ($1, $2, $3, $4)
 	//  RETURNING id, user_id, order_number, status, accrual, uploaded_at
 	SaveOrder(ctx context.Context, db DBTX, arg SaveOrderParams) (Order, error)
+	//UpdateOrder
+	//
+	//  UPDATE orders
+	//  SET status = $1, accrual = $2
+	//  WHERE order_number = $3
+	//  RETURNING id, user_id, order_number, status, accrual, uploaded_at
+	UpdateOrder(ctx context.Context, db DBTX, arg UpdateOrderParams) (Order, error)
 }
 
 var _ Querier = (*Queries)(nil)

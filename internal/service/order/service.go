@@ -25,6 +25,8 @@ type OrderRepository interface {
 	SaveOrder(ctx context.Context, order queries.Order) (queries.Order, error)
 	FindOrderByOrderNumber(ctx context.Context, orderNumber string) (queries.Order, error)
 	FindByUserId(ctx context.Context, userID int) ([]queries.Order, error)
+	FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error)
+	UpdateOrder(ctx context.Context, orderNumber, status string, accrual int) error
 }
 
 type Service struct {
@@ -81,4 +83,20 @@ func (s *Service) GetUserOrders(ctx context.Context) ([]queries.Order, error) {
 	}
 
 	return orders, nil
+}
+
+func (s *Service) FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error) {
+	models, err := s.orderRepo.FindByInProgressStatuses(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("orderRepo.FindByInProgressStatuses: %w", err)
+	}
+	return models, nil
+}
+
+func (s *Service) UpdateOrder(ctx context.Context, orderNumber, status string, accrual int) error {
+	err := s.orderRepo.UpdateOrder(ctx, orderNumber, status, accrual)
+	if err != nil {
+		return fmt.Errorf("orderRepo.UpdateOrder: %w", err)
+	}
+	return nil
 }

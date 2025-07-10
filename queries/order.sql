@@ -11,3 +11,13 @@ WHERE order_number = sqlc.arg(order_number) LIMIT 1;
 SELECT * FROM orders
 WHERE user_id = sqlc.arg(user_id)
 ORDER BY uploaded_at desc;
+
+-- name: FindByInProgressStatuses :many
+SELECT * FROM orders
+WHERE status IN ('NEW', 'REGISTERED', 'PROCESSING') LIMIT 500;
+
+-- name: UpdateOrder :one
+UPDATE orders
+SET status = sqlc.arg(status), accrual = sqlc.arg(accrual)
+WHERE order_number = sqlc.arg(order_number)
+RETURNING *;

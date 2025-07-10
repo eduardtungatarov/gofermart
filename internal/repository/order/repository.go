@@ -65,3 +65,24 @@ func (r *Repository) FindByUserId(ctx context.Context, userID int) ([]queries.Or
 	}
 	return models, nil
 }
+
+func (r *Repository) FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error) {
+	models, err := r.querier.FindByInProgressStatuses(ctx, r.db)
+	if err != nil {
+		return nil, fmt.Errorf("querier.FindByInProgressStatuses: %w", err)
+	}
+	return models, nil
+}
+
+func (r *Repository) UpdateOrder(ctx context.Context, orderNumber, status string, accrual int) error {
+	_, err := r.querier.UpdateOrder(ctx, r.db, queries.UpdateOrderParams{
+		OrderNumber: orderNumber,
+		Status:      status,
+		Accrual:     accrual,
+	})
+	if err != nil {
+		return fmt.Errorf("querier.UpdateOrder: %w", err)
+	}
+
+	return nil
+}
