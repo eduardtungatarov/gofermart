@@ -15,12 +15,12 @@ type WithdrawalRepository struct {
 	mock.Mock
 }
 
-// FindByUserId provides a mock function with given fields: ctx, userID
-func (_m *WithdrawalRepository) FindByUserId(ctx context.Context, userID int) ([]queries.Withdrawal, error) {
+// FindByUserID provides a mock function with given fields: ctx, userID
+func (_m *WithdrawalRepository) FindByUserID(ctx context.Context, userID int) ([]queries.Withdrawal, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByUserId")
+		panic("no return value specified for FindByUserID")
 	}
 
 	var r0 []queries.Withdrawal
@@ -43,6 +43,24 @@ func (_m *WithdrawalRepository) FindByUserId(ctx context.Context, userID int) ([
 	}
 
 	return r0, r1
+}
+
+// SaveWithdrawal provides a mock function with given fields: ctx, withdrawal
+func (_m *WithdrawalRepository) SaveWithdrawal(ctx context.Context, withdrawal queries.Withdrawal) error {
+	ret := _m.Called(ctx, withdrawal)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveWithdrawal")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, queries.Withdrawal) error); ok {
+		r0 = rf(ctx, withdrawal)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewWithdrawalRepository creates a new instance of WithdrawalRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

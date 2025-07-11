@@ -14,12 +14,12 @@ type BalanceRepository struct {
 	mock.Mock
 }
 
-// FindByUserId provides a mock function with given fields: ctx, userID
-func (_m *BalanceRepository) FindByUserId(ctx context.Context, userID int) (queries.Balance, error) {
+// FindByUserID provides a mock function with given fields: ctx, userID
+func (_m *BalanceRepository) FindByUserID(ctx context.Context, userID int) (queries.Balance, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByUserId")
+		panic("no return value specified for FindByUserID")
 	}
 
 	var r0 queries.Balance

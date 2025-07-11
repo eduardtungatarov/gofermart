@@ -45,12 +45,12 @@ func (_m *OrderRepository) FindByInProgressStatuses(ctx context.Context) ([]quer
 	return r0, r1
 }
 
-// FindByUserId provides a mock function with given fields: ctx, userID
-func (_m *OrderRepository) FindByUserId(ctx context.Context, userID int) ([]queries.Order, error) {
+// FindByUserID provides a mock function with given fields: ctx, userID
+func (_m *OrderRepository) FindByUserID(ctx context.Context, userID int) ([]queries.Order, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByUserId")
+		panic("no return value specified for FindByUserID")
 	}
 
 	var r0 []queries.Order
@@ -131,17 +131,17 @@ func (_m *OrderRepository) SaveOrder(ctx context.Context, _a1 queries.Order) (qu
 	return r0, r1
 }
 
-// UpdateOrder provides a mock function with given fields: ctx, orderNumber, status, accrual
-func (_m *OrderRepository) UpdateOrder(ctx context.Context, orderNumber string, status string, accrual int) error {
-	ret := _m.Called(ctx, orderNumber, status, accrual)
+// UpdateOrder provides a mock function with given fields: ctx, userID, orderNumber, status, accrual
+func (_m *OrderRepository) UpdateOrder(ctx context.Context, userID int, orderNumber string, status string, accrual int) error {
+	ret := _m.Called(ctx, userID, orderNumber, status, accrual)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateOrder")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) error); ok {
-		r0 = rf(ctx, orderNumber, status, accrual)
+	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, int) error); ok {
+		r0 = rf(ctx, userID, orderNumber, status, accrual)
 	} else {
 		r0 = ret.Error(0)
 	}
