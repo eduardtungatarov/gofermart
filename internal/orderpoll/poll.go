@@ -24,6 +24,7 @@ type OrderService interface {
 	UpdateOrder(ctx context.Context, userID int, orderNumber, status string, accrual int) error
 }
 
+//go:generate mockery --name=AccrualClient
 type AccrualClient interface {
 	GetOrder(orderNumber string) (*accrual.Order, error)
 }
