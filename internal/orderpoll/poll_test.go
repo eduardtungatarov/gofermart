@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eduardtungatarov/gofermart/internal/repository/order/queries"
+
 	"github.com/eduardtungatarov/gofermart/internal/accrual"
 	"github.com/stretchr/testify/mock"
 
@@ -178,6 +180,90 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 
 			orderSrv.AssertExpectations(t)
 			client.AssertExpectations(t)
+		})
+	}
+}
+
+func TestOrderPoll_RunReader(t *testing.T) {
+	tests := []struct {
+		name           string
+		orderMockSetup func(m *mocks.OrderService)
+		expectError    bool
+		expectOutput   []OrderChValue
+	}{
+		{
+			name: "success_order_found",
+			orderMockSetup: func(m *mocks.OrderService) {
+				m.On("FindByInProgressStatuses", mock.Anything).
+					Return([]queries.Order{
+						{
+							OrderNumber: "123",
+							UserID:      1,
+						},
+						{
+							OrderNumber: "456",
+							UserID:      2,
+						},
+					}, nil)
+			},
+			expectError: false,
+			expectOutput: []OrderChValue{
+				{
+					OrderNumber: "123",
+					UserID:      1,
+				},
+				{
+					OrderNumber: "456",
+					UserID:      2,
+				},
+			},
+		},
+		{
+			name: "err_order_found",
+			orderMockSetup: func(m *mocks.OrderService) {
+				m.On("FindByInProgressStatuses", mock.Anything).
+					Return([]queries.Order{}, errors.New("db error"))
+			},
+			expectError:  true,
+			expectOutput: []OrderChValue{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Подготовка.
+			orderSrv := mocks.NewOrderService(t)
+			tt.orderMockSetup(orderSrv)
+			o := &OrderPoll{
+				orderSrv: orderSrv,
+				client:   nil,
+				// nop
+				log:       zap.NewNop().Sugar(),
+				cfg:       config.Config{},
+				sleepTime: time.Millisecond * 1,
+				workerNum: 0,
+			}
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			// Проверяем.
+			cancel() // чтобы выйти из бесконеч цикла.
+			output := make(chan OrderChValue, len(tt.expectOutput))
+			err := o.RunReader(ctx, output)
+			if tt.expectError {
+				assert.Error(t, err, "expected error")
+			} else {
+				assert.NoError(t, err, "nil error expected")
+			}
+
+			if len(tt.expectOutput) > 0 {
+				for order := range output {
+					assert.Contains(t, tt.expectOutput, order, "order %v not found in output channel = %v", order, tt.expectOutput)
+				}
+			}
+
+			orderSrv.AssertExpectations(t)
 		})
 	}
 }
