@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -79,19 +81,15 @@ func TestClient_GetOrder(t *testing.T) {
 			gotOrder, err := client.GetOrder(tt.orderNumber)
 
 			// Проверяем ошибки
-			if tt.wantErr && err == nil {
-				t.Errorf("GetOrder() - error expected")
-				return
+			if tt.wantErr {
+				require.Error(t, err, "expected error when calling the client.GetOrder")
 			}
 
 			// Проверяем код статуса в ошибке NonOkError.
 			if tt.wantNonOkErrorStatus != 0 {
-				nonOk, ok := err.(*NonOkError)
-				if !ok {
-					t.Errorf("GetOrder() - expected NonOkError Type, got = %v", err)
-				}
-
-				assert.Equal(t, tt.wantNonOkErrorStatus, nonOk.Code, "expected NonOkErrorCode = %v, got = %v", tt.wantNonOkErrorStatus, nonOk.Code)
+				var nonOkErr *NonOkError
+				require.ErrorAs(t, err, &nonOkErr, "expected NonOkError, got %T", nonOkErr, err)
+				assert.Equal(t, tt.wantNonOkErrorStatus, nonOkErr.Code, "expected NonOkErrorCode = %v, got = %v", tt.wantNonOkErrorStatus, nonOkErr.Code)
 			}
 
 			// Проверяем результат

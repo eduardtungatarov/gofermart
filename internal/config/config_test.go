@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -98,15 +100,9 @@ func TestLoadConfig(t *testing.T) {
 
 			got := Load()
 
-			if got.RunAddr != tt.expected.RunAddr {
-				t.Errorf("RunAddr got = %v, want %v", got.RunAddr, tt.expected.RunAddr)
-			}
-			if got.AccrualAddr != tt.expected.AccrualAddr {
-				t.Errorf("AccrualAddr got = %v, want %v", got.AccrualAddr, tt.expected.AccrualAddr)
-			}
-			if got.Database.DSN != tt.expected.Database.DSN {
-				t.Errorf("Database.DSN got = %v, want %v", got.Database.DSN, tt.expected.Database.DSN)
-			}
+			require.Equal(t, tt.expected.RunAddr, got.RunAddr, "RunAddr got = %v, want %v", got.RunAddr, tt.expected.RunAddr)
+			require.Equal(t, tt.expected.AccrualAddr, got.AccrualAddr, "AccrualAddr got = %v, want %v", got.AccrualAddr, tt.expected.AccrualAddr)
+			require.Equal(t, tt.expected.Database.DSN, got.Database.DSN, "Database.DSN got = %v, want %v", got.Database.DSN, tt.expected.Database.DSN)
 		})
 	}
 }
