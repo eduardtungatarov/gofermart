@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	stlog "log"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -34,6 +33,9 @@ import (
 )
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	// Создаем логер.
 	log, err := logger.MakeLogger()
 	if err != nil {
@@ -75,7 +77,6 @@ func main() {
 	m := middleware.MakeMiddleware(log, authSrv)
 	s := server.NewServer(cfg, h, m)
 
-	ctx, cancel := context.WithCancel(context.Background())
 	errChan := make(chan error, 2)
 	// Запускаем опрашиватель заказов.
 	go func() {
@@ -93,19 +94,15 @@ func main() {
 	}()
 	log.Info("Service started")
 
-	shutdownChan := make(chan os.Signal, 2)
-	signal.Notify(shutdownChan, os.Interrupt, syscall.SIGTERM)
-
 	select {
 	case err := <-errChan:
 		log.Error(err)
-		cancel()
-	case sig := <-shutdownChan:
-		log.Infof("Received signal: %v", sig)
-		cancel()
+		stop()
+	case <-ctx.Done():
+		log.Info("Service is stop...")
+		stop()
 	}
 
-	log.Info("Service is stop...")
 	time.Sleep(cfg.ShutdownTime)
 	log.Info("Service stopped")
 }
