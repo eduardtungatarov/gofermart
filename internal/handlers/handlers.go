@@ -166,11 +166,13 @@ func (h *Handler) PostUserOrders(res http.ResponseWriter, req *http.Request) {
 
 	err = h.orderService.PostUserOrders(req.Context(), orderNumber)
 	if err != nil {
-		if errors.Is(err, order.ErrOrderAlreadyUploadedByUser) {
+		var errOrderAlreadyUploadedByUser *order.ErrOrderAlreadyUploadedByUser
+		if errors.As(err, &errOrderAlreadyUploadedByUser) {
 			res.WriteHeader(http.StatusOK)
 			return
 		}
-		if errors.Is(err, order.ErrOrderAlreadyUploadedByAnotherUser) {
+		var errOrderAlreadyUploadedByAnotherUser *order.ErrOrderAlreadyUploadedByAnotherUser
+		if errors.As(err, &errOrderAlreadyUploadedByAnotherUser) {
 			res.WriteHeader(http.StatusConflict)
 			return
 		}

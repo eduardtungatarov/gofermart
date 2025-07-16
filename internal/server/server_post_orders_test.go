@@ -90,7 +90,7 @@ func TestPostOrdersEndpoint(t *testing.T) {
 					OrderNumber: "12345678903",
 					Status:      "NEW",
 					Accrual:     0,
-				}).Return(queries.Order{}, order.ErrOrderAlreadyExists)
+				}).Return(queries.Order{}, &order.ErrOrderAlreadyExists{})
 				// Заказ принадлежил юзеру с ID = 1;
 				m.EXPECT().FindOrderByOrderNumber(mock.Anything, "12345678903").
 					Return(queries.Order{UserID: 1}, nil)
@@ -107,7 +107,7 @@ func TestPostOrdersEndpoint(t *testing.T) {
 					OrderNumber: "12345678903",
 					Status:      "NEW",
 					Accrual:     0,
-				}).Return(queries.Order{}, order.ErrOrderAlreadyExists)
+				}).Return(queries.Order{}, &order.ErrOrderAlreadyExists{})
 				// Заказ принадлежил юзеру с ID = 2;
 				m.EXPECT().FindOrderByOrderNumber(mock.Anything, "12345678903").
 					Return(queries.Order{UserID: 2}, nil)

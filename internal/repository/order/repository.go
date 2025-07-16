@@ -16,7 +16,13 @@ import (
 	"github.com/eduardtungatarov/gofermart/internal/repository/order/queries"
 )
 
-var ErrOrderAlreadyExists = errors.New("order with this number already exists")
+type ErrOrderAlreadyExists struct {
+	OrderNumber string
+}
+
+func (e *ErrOrderAlreadyExists) Error() string {
+	return fmt.Sprintf("order %s already exists", e.OrderNumber)
+}
 
 type Repository struct {
 	db             queries.DBTX
@@ -42,7 +48,9 @@ func (r *Repository) SaveOrder(ctx context.Context, order queries.Order) (querie
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return queries.Order{}, ErrOrderAlreadyExists
+			return queries.Order{}, &ErrOrderAlreadyExists{
+				OrderNumber: order.OrderNumber,
+			}
 		}
 		return queries.Order{}, fmt.Errorf("failed to save order: %w", err)
 	}

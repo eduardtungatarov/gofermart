@@ -16,10 +16,21 @@ const (
 	StatusInvalid = "INVALID"
 )
 
-var (
-	ErrOrderAlreadyUploadedByUser        = errors.New("order number was already uploaded by this user")
-	ErrOrderAlreadyUploadedByAnotherUser = errors.New("order number was already uploaded by another user")
-)
+type ErrOrderAlreadyUploadedByUser struct {
+	OrderNumber string
+}
+
+func (e *ErrOrderAlreadyUploadedByUser) Error() string {
+	return fmt.Sprintf("%s was already uploaded by this user", e.OrderNumber)
+}
+
+type ErrOrderAlreadyUploadedByAnotherUser struct {
+	OrderNumber string
+}
+
+func (e *ErrOrderAlreadyUploadedByAnotherUser) Error() string {
+	return fmt.Sprintf("%s was was already uploaded by another user", e.OrderNumber)
+}
 
 //go:generate mockery --with-expecter --name=OrderRepository
 type OrderRepository interface {
@@ -53,17 +64,22 @@ func (s *Service) PostUserOrders(ctx context.Context, orderNumber string) error 
 		Accrual:     0,
 	})
 	if err != nil {
-		if errors.Is(err, order.ErrOrderAlreadyExists) {
+		var orderErr *order.ErrOrderAlreadyExists
+		if errors.As(err, &orderErr) {
 			orderModel, err := s.orderRepo.FindOrderByOrderNumber(ctx, orderNumber)
 			if err != nil {
 				return fmt.Errorf("failed FindOrderByOrderNumber: %w", err)
 			}
 
 			if orderModel.UserID == userID {
-				return ErrOrderAlreadyUploadedByUser
+				return &ErrOrderAlreadyUploadedByUser{
+					OrderNumber: orderErr.OrderNumber,
+				}
 			}
 
-			return ErrOrderAlreadyUploadedByAnotherUser
+			return &ErrOrderAlreadyUploadedByAnotherUser{
+				OrderNumber: orderErr.OrderNumber,
+			}
 		}
 
 		return fmt.Errorf("failed to SaveOrder: %w", err)
