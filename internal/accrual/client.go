@@ -34,7 +34,7 @@ type Client struct {
 
 func NewClient(cfg config.Config) *Client {
 	return &Client{
-		baseURL:    cfg.AccrualADDR,
+		baseURL:    cfg.AccrualAddr,
 		httpClient: &http.Client{},
 	}
 }

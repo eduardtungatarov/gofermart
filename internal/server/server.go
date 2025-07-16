@@ -26,7 +26,7 @@ func NewServer(cfg config.Config, h *handlers.Handler, m *middleware.Middleware)
 
 func (s *Server) Run(ctx context.Context) error {
 	srv := &http.Server{
-		Addr:    s.cfg.RunADDR,
+		Addr:    s.cfg.RunAddr,
 		Handler: s.GetRouter(),
 	}
 

@@ -9,15 +9,15 @@ import (
 type UserIDKey string
 
 const (
-	DefaultRunADDR                     = "localhost:8081"
+	DefaultRunAddr                     = "localhost:8081"
 	DefaultDatabaseURI                 = "host=localhost port=5432 user=myuser password=mypassword dbname=mydatabase sslmode=disable"
-	DefaultAccrualSystemADRR           = "http://localhost:8080"
+	DefaultAccrualSystemAdrr           = "http://localhost:8080"
 	UserIDKeyName            UserIDKey = "userId"
 )
 
 type Config struct {
-	RunADDR     string
-	AccrualADDR string
+	RunAddr     string
+	AccrualAddr string
 	Database
 	OrderPoll
 	ShutdownTime time.Duration // Время, которое даем для корректного завершения сервиса.
@@ -33,14 +33,14 @@ type OrderPoll struct {
 }
 
 func Load() Config {
-	runADDR := flag.String("a", DefaultRunADDR, "отвечает за адрес запуска HTTP-сервера")
+	runAddr := flag.String("a", DefaultRunAddr, "отвечает за адрес запуска HTTP-сервера")
 	databaseURI := flag.String("d", DefaultDatabaseURI, "строка с адресом подключения к БД")
-	accrualADDR := flag.String("r", DefaultAccrualSystemADRR, "адрес системы расчёта начислений")
+	accrualAddr := flag.String("r", DefaultAccrualSystemAdrr, "адрес системы расчёта начислений")
 	flag.Parse()
 
 	aEnv, ok := os.LookupEnv("RUN_ADDRESS")
 	if ok {
-		*runADDR = aEnv
+		*runAddr = aEnv
 	}
 
 	dEnv, ok := os.LookupEnv("DATABASE_URI")
@@ -50,12 +50,12 @@ func Load() Config {
 
 	rEnv, ok := os.LookupEnv("ACCRUAL_SYSTEM_ADDRESS")
 	if ok {
-		*accrualADDR = rEnv
+		*accrualAddr = rEnv
 	}
 
 	return Config{
-		RunADDR:     *runADDR,
-		AccrualADDR: *accrualADDR,
+		RunAddr:     *runAddr,
+		AccrualAddr: *accrualAddr,
 		Database: Database{
 			DSN: *databaseURI,
 		},

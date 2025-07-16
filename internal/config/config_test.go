@@ -30,8 +30,8 @@ func TestLoadConfig(t *testing.T) {
 			name: "default_values",
 			args: []string{"cmd"},
 			expected: Config{
-				RunADDR:     DefaultRunADDR,
-				AccrualADDR: DefaultAccrualSystemADRR,
+				RunAddr:     DefaultRunAddr,
+				AccrualAddr: DefaultAccrualSystemAdrr,
 				Database: Database{
 					DSN: DefaultDatabaseURI,
 				},
@@ -41,8 +41,8 @@ func TestLoadConfig(t *testing.T) {
 			name: "command_line_flags",
 			args: []string{"cmd", "-a=:9090", "-d=postgres://user:pass@localhost:5432/db", "-r=http://accrual:8080"},
 			expected: Config{
-				RunADDR:     ":9090",
-				AccrualADDR: "http://accrual:8080",
+				RunAddr:     ":9090",
+				AccrualAddr: "http://accrual:8080",
 				Database: Database{
 					DSN: "postgres://user:pass@localhost:5432/db",
 				},
@@ -57,8 +57,8 @@ func TestLoadConfig(t *testing.T) {
 				"ACCRUAL_SYSTEM_ADDRESS": "http://accrual:8080",
 			},
 			expected: Config{
-				RunADDR:     ":9090",
-				AccrualADDR: "http://accrual:8080",
+				RunAddr:     ":9090",
+				AccrualAddr: "http://accrual:8080",
 				Database: Database{
 					DSN: "postgres://user:pass@localhost:5432/db",
 				},
@@ -73,8 +73,8 @@ func TestLoadConfig(t *testing.T) {
 				"ACCRUAL_SYSTEM_ADDRESS": "http://env:8080",
 			},
 			expected: Config{
-				RunADDR:     ":9090",
-				AccrualADDR: "http://env:8080",
+				RunAddr:     ":9090",
+				AccrualAddr: "http://env:8080",
 				Database: Database{
 					DSN: "postgres://env:env@env:5432/env",
 				},
@@ -98,11 +98,11 @@ func TestLoadConfig(t *testing.T) {
 
 			got := Load()
 
-			if got.RunADDR != tt.expected.RunADDR {
-				t.Errorf("RunADDR got = %v, want %v", got.RunADDR, tt.expected.RunADDR)
+			if got.RunAddr != tt.expected.RunAddr {
+				t.Errorf("RunAddr got = %v, want %v", got.RunAddr, tt.expected.RunAddr)
 			}
-			if got.AccrualADDR != tt.expected.AccrualADDR {
-				t.Errorf("AccrualADDR got = %v, want %v", got.AccrualADDR, tt.expected.AccrualADDR)
+			if got.AccrualAddr != tt.expected.AccrualAddr {
+				t.Errorf("AccrualAddr got = %v, want %v", got.AccrualAddr, tt.expected.AccrualAddr)
 			}
 			if got.Database.DSN != tt.expected.Database.DSN {
 				t.Errorf("Database.DSN got = %v, want %v", got.Database.DSN, tt.expected.Database.DSN)
