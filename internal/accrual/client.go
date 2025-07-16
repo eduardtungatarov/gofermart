@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
 )
@@ -39,7 +40,12 @@ func NewClient(cfg config.Config) *Client {
 }
 
 func (c *Client) GetOrder(orderNumber string) (*Order, error) {
-	resp, err := c.httpClient.Get(c.baseURL + "/api/orders/" + orderNumber)
+	endpointURL, err := url.JoinPath(c.baseURL, "api/orders", orderNumber)
+	if err != nil {
+		return nil, fmt.Errorf("url.JoinPath err: %w", err)
+	}
+
+	resp, err := c.httpClient.Get(endpointURL)
 	if err != nil {
 		return nil, fmt.Errorf("httpClient.Get net err: %w", err)
 	}
