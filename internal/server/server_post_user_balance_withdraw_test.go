@@ -53,7 +53,7 @@ func TestPostUserBalanceWithdrawEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *withdrawalMocks.WithdrawalRepository) {
-				m.On("SaveWithdrawal", mock.Anything, queries.Withdrawal{
+				m.EXPECT().SaveWithdrawal(mock.Anything, queries.Withdrawal{
 					UserID:      1,
 					OrderNumber: "2377225624",
 					Sum:         75100,
@@ -103,7 +103,7 @@ func TestPostUserBalanceWithdrawEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *withdrawalMocks.WithdrawalRepository) {
-				m.On("SaveWithdrawal", mock.Anything, queries.Withdrawal{
+				m.EXPECT().SaveWithdrawal(mock.Anything, queries.Withdrawal{
 					UserID:      1,
 					OrderNumber: "2377225624",
 					Sum:         75100,
@@ -119,7 +119,7 @@ func TestPostUserBalanceWithdrawEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *withdrawalMocks.WithdrawalRepository) {
-				m.On("SaveWithdrawal", mock.Anything, queries.Withdrawal{
+				m.EXPECT().SaveWithdrawal(mock.Anything, queries.Withdrawal{
 					UserID:      1,
 					OrderNumber: "2377225624",
 					Sum:         75100,
@@ -134,7 +134,7 @@ func TestPostUserBalanceWithdrawEndpoint(t *testing.T) {
 		wRepo := withdrawalMocks.NewWithdrawalRepository(t)
 		tt.mockSetup(wRepo)
 		authSrv := middlewareMocks.NewAuthService(t)
-		authSrv.On("GetUserIDByToken", mock.Anything).
+		authSrv.EXPECT().GetUserIDByToken(mock.Anything).
 			Return(1, nil)
 		m := middleware.MakeMiddleware(
 			zap.NewNop().Sugar(),

@@ -41,7 +41,7 @@ func TestGetUserOrdersEndpoint(t *testing.T) {
 		{
 			name: "success",
 			mockSetup: func(m *orderMocks.OrderRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return([]queries.Order{
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return([]queries.Order{
 					{
 						OrderNumber: "9278923470",
 						Status:      "PROCESSED",
@@ -62,7 +62,7 @@ func TestGetUserOrdersEndpoint(t *testing.T) {
 		{
 			name: "empty_order",
 			mockSetup: func(m *orderMocks.OrderRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return([]queries.Order{}, nil)
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return([]queries.Order{}, nil)
 			},
 			expectedHTTPStatus:  http.StatusNoContent,
 			expectedContentType: "",
@@ -71,7 +71,7 @@ func TestGetUserOrdersEndpoint(t *testing.T) {
 		{
 			name: "internal_err",
 			mockSetup: func(m *orderMocks.OrderRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return([]queries.Order{}, errors.New("db err"))
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return([]queries.Order{}, errors.New("db err"))
 			},
 			expectedHTTPStatus:  http.StatusInternalServerError,
 			expectedContentType: "",
@@ -84,7 +84,7 @@ func TestGetUserOrdersEndpoint(t *testing.T) {
 		orderRepo := orderMocks.NewOrderRepository(t)
 		tt.mockSetup(orderRepo)
 		authSrv := middlewareMocks.NewAuthService(t)
-		authSrv.On("GetUserIDByToken", mock.Anything).
+		authSrv.EXPECT().GetUserIDByToken(mock.Anything).
 			Return(1, nil)
 		m := middleware.MakeMiddleware(
 			zap.NewNop().Sugar(),
@@ -120,8 +120,5 @@ func TestGetUserOrdersEndpoint(t *testing.T) {
 		if tt.expectedContentType != "" {
 			assert.Equal(t, tt.expectedContentType, "application/json", "content-type response is wrong, must be json")
 		}
-
-		// Проверяю вызовы мока.
-		orderRepo.AssertExpectations(t)
 	}
 }

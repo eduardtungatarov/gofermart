@@ -20,7 +20,7 @@ const (
 
 var ErrLoginPwd = errors.New("invalid username/password pair")
 
-//go:generate mockery --name=UserRepository
+//go:generate mockery --with-expecter --name=UserRepository
 type UserRepository interface {
 	SaveUser(ctx context.Context, user queries.User) (queries.User, error)
 	FindUserByLogin(ctx context.Context, login string) (queries.User, error)

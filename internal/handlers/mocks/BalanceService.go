@@ -15,6 +15,14 @@ type BalanceService struct {
 	mock.Mock
 }
 
+type BalanceService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *BalanceService) EXPECT() *BalanceService_Expecter {
+	return &BalanceService_Expecter{mock: &_m.Mock}
+}
+
 // GetUserBalance provides a mock function with given fields: ctx
 func (_m *BalanceService) GetUserBalance(ctx context.Context) (queries.Balance, error) {
 	ret := _m.Called(ctx)
@@ -41,6 +49,34 @@ func (_m *BalanceService) GetUserBalance(ctx context.Context) (queries.Balance, 
 	}
 
 	return r0, r1
+}
+
+// BalanceService_GetUserBalance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserBalance'
+type BalanceService_GetUserBalance_Call struct {
+	*mock.Call
+}
+
+// GetUserBalance is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *BalanceService_Expecter) GetUserBalance(ctx interface{}) *BalanceService_GetUserBalance_Call {
+	return &BalanceService_GetUserBalance_Call{Call: _e.mock.On("GetUserBalance", ctx)}
+}
+
+func (_c *BalanceService_GetUserBalance_Call) Run(run func(ctx context.Context)) *BalanceService_GetUserBalance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *BalanceService_GetUserBalance_Call) Return(_a0 queries.Balance, _a1 error) *BalanceService_GetUserBalance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BalanceService_GetUserBalance_Call) RunAndReturn(run func(context.Context) (queries.Balance, error)) *BalanceService_GetUserBalance_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewBalanceService creates a new instance of BalanceService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

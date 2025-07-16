@@ -25,7 +25,7 @@ func TestWithAuth(t *testing.T) {
 		{
 			name: "Successful_authentication_with_valid_token",
 			setupMock: func(m *mocks.AuthService) {
-				m.On("GetUserIDByToken", "valid.token.123").Return(123, nil)
+				m.EXPECT().GetUserIDByToken("valid.token.123").Return(123, nil)
 			},
 			authHeader:     "Bearer valid.token.123",
 			expectedStatus: http.StatusOK,
@@ -42,7 +42,7 @@ func TestWithAuth(t *testing.T) {
 		{
 			name: "Incorrect_token",
 			setupMock: func(m *mocks.AuthService) {
-				m.On("GetUserIDByToken", "expired.token").Return(0, jwt.ErrTokenExpired)
+				m.EXPECT().GetUserIDByToken("expired.token").Return(0, jwt.ErrTokenExpired)
 			},
 			authHeader:     "Bearer expired.token",
 			expectedStatus: http.StatusUnauthorized,
@@ -82,7 +82,6 @@ func TestWithAuth(t *testing.T) {
 			} else {
 				assert.False(t, handlerCalled, "Обработчик внутри миддлвари не должен был быть вызван")
 			}
-			mockAuthService.AssertExpectations(t)
 		})
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockery --name=AuthService
+//go:generate mockery --with-expecter --name=AuthService
 type AuthService interface {
 	GetUserIDByToken(tokenStr string) (int, error)
 }

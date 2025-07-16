@@ -15,6 +15,14 @@ type WithdrawalRepository struct {
 	mock.Mock
 }
 
+type WithdrawalRepository_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *WithdrawalRepository) EXPECT() *WithdrawalRepository_Expecter {
+	return &WithdrawalRepository_Expecter{mock: &_m.Mock}
+}
+
 // FindByUserID provides a mock function with given fields: ctx, userID
 func (_m *WithdrawalRepository) FindByUserID(ctx context.Context, userID int) ([]queries.Withdrawal, error) {
 	ret := _m.Called(ctx, userID)
@@ -45,6 +53,35 @@ func (_m *WithdrawalRepository) FindByUserID(ctx context.Context, userID int) ([
 	return r0, r1
 }
 
+// WithdrawalRepository_FindByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByUserID'
+type WithdrawalRepository_FindByUserID_Call struct {
+	*mock.Call
+}
+
+// FindByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+func (_e *WithdrawalRepository_Expecter) FindByUserID(ctx interface{}, userID interface{}) *WithdrawalRepository_FindByUserID_Call {
+	return &WithdrawalRepository_FindByUserID_Call{Call: _e.mock.On("FindByUserID", ctx, userID)}
+}
+
+func (_c *WithdrawalRepository_FindByUserID_Call) Run(run func(ctx context.Context, userID int)) *WithdrawalRepository_FindByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *WithdrawalRepository_FindByUserID_Call) Return(_a0 []queries.Withdrawal, _a1 error) *WithdrawalRepository_FindByUserID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *WithdrawalRepository_FindByUserID_Call) RunAndReturn(run func(context.Context, int) ([]queries.Withdrawal, error)) *WithdrawalRepository_FindByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SaveWithdrawal provides a mock function with given fields: ctx, withdrawal
 func (_m *WithdrawalRepository) SaveWithdrawal(ctx context.Context, withdrawal queries.Withdrawal) error {
 	ret := _m.Called(ctx, withdrawal)
@@ -61,6 +98,35 @@ func (_m *WithdrawalRepository) SaveWithdrawal(ctx context.Context, withdrawal q
 	}
 
 	return r0
+}
+
+// WithdrawalRepository_SaveWithdrawal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SaveWithdrawal'
+type WithdrawalRepository_SaveWithdrawal_Call struct {
+	*mock.Call
+}
+
+// SaveWithdrawal is a helper method to define mock.On call
+//   - ctx context.Context
+//   - withdrawal queries.Withdrawal
+func (_e *WithdrawalRepository_Expecter) SaveWithdrawal(ctx interface{}, withdrawal interface{}) *WithdrawalRepository_SaveWithdrawal_Call {
+	return &WithdrawalRepository_SaveWithdrawal_Call{Call: _e.mock.On("SaveWithdrawal", ctx, withdrawal)}
+}
+
+func (_c *WithdrawalRepository_SaveWithdrawal_Call) Run(run func(ctx context.Context, withdrawal queries.Withdrawal)) *WithdrawalRepository_SaveWithdrawal_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(queries.Withdrawal))
+	})
+	return _c
+}
+
+func (_c *WithdrawalRepository_SaveWithdrawal_Call) Return(_a0 error) *WithdrawalRepository_SaveWithdrawal_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *WithdrawalRepository_SaveWithdrawal_Call) RunAndReturn(run func(context.Context, queries.Withdrawal) error) *WithdrawalRepository_SaveWithdrawal_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewWithdrawalRepository creates a new instance of WithdrawalRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

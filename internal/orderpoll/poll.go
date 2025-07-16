@@ -18,13 +18,13 @@ import (
 	"github.com/eduardtungatarov/gofermart/internal/repository/order/queries"
 )
 
-//go:generate mockery --name=OrderService
+//go:generate mockery --with-expecter --name=OrderService
 type OrderService interface {
 	FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error)
 	UpdateOrder(ctx context.Context, userID int, orderNumber, status string, accrual int) error
 }
 
-//go:generate mockery --name=AccrualClient
+//go:generate mockery --with-expecter --name=AccrualClient
 type AccrualClient interface {
 	GetOrder(orderNumber string) (*accrual.Order, error)
 }

@@ -41,7 +41,7 @@ func TestGetBalanceEndpoint(t *testing.T) {
 		{
 			name: "success",
 			mockSetup: func(m *balanceMocks.BalanceRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return(queries.Balance{
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return(queries.Balance{
 					Current:   10000,
 					Withdrawn: 5000,
 				}, nil)
@@ -53,7 +53,7 @@ func TestGetBalanceEndpoint(t *testing.T) {
 		{
 			name: "correct_response_when_no_balance_record",
 			mockSetup: func(m *balanceMocks.BalanceRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return(queries.Balance{}, repository.ErrNoModel)
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return(queries.Balance{}, repository.ErrNoModel)
 			},
 			expectedHTTPStatus:  http.StatusOK,
 			expectedContentType: "application/json",
@@ -62,7 +62,7 @@ func TestGetBalanceEndpoint(t *testing.T) {
 		{
 			name: "internal_err",
 			mockSetup: func(m *balanceMocks.BalanceRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return(queries.Balance{}, errors.New("db err"))
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return(queries.Balance{}, errors.New("db err"))
 			},
 			expectedHTTPStatus:  http.StatusInternalServerError,
 			expectedContentType: "",
@@ -75,7 +75,7 @@ func TestGetBalanceEndpoint(t *testing.T) {
 		balanceRepo := balanceMocks.NewBalanceRepository(t)
 		tt.mockSetup(balanceRepo)
 		authSrv := middlewareMocks.NewAuthService(t)
-		authSrv.On("GetUserIDByToken", mock.Anything).
+		authSrv.EXPECT().GetUserIDByToken(mock.Anything).
 			Return(1, nil)
 		m := middleware.MakeMiddleware(
 			zap.NewNop().Sugar(),
@@ -111,8 +111,5 @@ func TestGetBalanceEndpoint(t *testing.T) {
 		if tt.expectedContentType != "" {
 			assert.Equal(t, tt.expectedContentType, "application/json", "content-type response is wrong, must be json")
 		}
-
-		// Проверяю вызовы мока.
-		balanceRepo.AssertExpectations(t)
 	}
 }

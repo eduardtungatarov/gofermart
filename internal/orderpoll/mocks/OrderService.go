@@ -15,6 +15,14 @@ type OrderService struct {
 	mock.Mock
 }
 
+type OrderService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *OrderService) EXPECT() *OrderService_Expecter {
+	return &OrderService_Expecter{mock: &_m.Mock}
+}
+
 // FindByInProgressStatuses provides a mock function with given fields: ctx
 func (_m *OrderService) FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error) {
 	ret := _m.Called(ctx)
@@ -45,6 +53,34 @@ func (_m *OrderService) FindByInProgressStatuses(ctx context.Context) ([]queries
 	return r0, r1
 }
 
+// OrderService_FindByInProgressStatuses_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByInProgressStatuses'
+type OrderService_FindByInProgressStatuses_Call struct {
+	*mock.Call
+}
+
+// FindByInProgressStatuses is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *OrderService_Expecter) FindByInProgressStatuses(ctx interface{}) *OrderService_FindByInProgressStatuses_Call {
+	return &OrderService_FindByInProgressStatuses_Call{Call: _e.mock.On("FindByInProgressStatuses", ctx)}
+}
+
+func (_c *OrderService_FindByInProgressStatuses_Call) Run(run func(ctx context.Context)) *OrderService_FindByInProgressStatuses_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *OrderService_FindByInProgressStatuses_Call) Return(_a0 []queries.Order, _a1 error) *OrderService_FindByInProgressStatuses_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrderService_FindByInProgressStatuses_Call) RunAndReturn(run func(context.Context) ([]queries.Order, error)) *OrderService_FindByInProgressStatuses_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateOrder provides a mock function with given fields: ctx, userID, orderNumber, status, accrual
 func (_m *OrderService) UpdateOrder(ctx context.Context, userID int, orderNumber string, status string, accrual int) error {
 	ret := _m.Called(ctx, userID, orderNumber, status, accrual)
@@ -61,6 +97,38 @@ func (_m *OrderService) UpdateOrder(ctx context.Context, userID int, orderNumber
 	}
 
 	return r0
+}
+
+// OrderService_UpdateOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateOrder'
+type OrderService_UpdateOrder_Call struct {
+	*mock.Call
+}
+
+// UpdateOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+//   - orderNumber string
+//   - status string
+//   - accrual int
+func (_e *OrderService_Expecter) UpdateOrder(ctx interface{}, userID interface{}, orderNumber interface{}, status interface{}, accrual interface{}) *OrderService_UpdateOrder_Call {
+	return &OrderService_UpdateOrder_Call{Call: _e.mock.On("UpdateOrder", ctx, userID, orderNumber, status, accrual)}
+}
+
+func (_c *OrderService_UpdateOrder_Call) Run(run func(ctx context.Context, userID int, orderNumber string, status string, accrual int)) *OrderService_UpdateOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int), args[2].(string), args[3].(string), args[4].(int))
+	})
+	return _c
+}
+
+func (_c *OrderService_UpdateOrder_Call) Return(_a0 error) *OrderService_UpdateOrder_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OrderService_UpdateOrder_Call) RunAndReturn(run func(context.Context, int, string, string, int) error) *OrderService_UpdateOrder_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewOrderService creates a new instance of OrderService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

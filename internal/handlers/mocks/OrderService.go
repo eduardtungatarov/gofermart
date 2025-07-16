@@ -15,6 +15,14 @@ type OrderService struct {
 	mock.Mock
 }
 
+type OrderService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *OrderService) EXPECT() *OrderService_Expecter {
+	return &OrderService_Expecter{mock: &_m.Mock}
+}
+
 // GetUserOrders provides a mock function with given fields: ctx
 func (_m *OrderService) GetUserOrders(ctx context.Context) ([]queries.Order, error) {
 	ret := _m.Called(ctx)
@@ -45,6 +53,34 @@ func (_m *OrderService) GetUserOrders(ctx context.Context) ([]queries.Order, err
 	return r0, r1
 }
 
+// OrderService_GetUserOrders_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserOrders'
+type OrderService_GetUserOrders_Call struct {
+	*mock.Call
+}
+
+// GetUserOrders is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *OrderService_Expecter) GetUserOrders(ctx interface{}) *OrderService_GetUserOrders_Call {
+	return &OrderService_GetUserOrders_Call{Call: _e.mock.On("GetUserOrders", ctx)}
+}
+
+func (_c *OrderService_GetUserOrders_Call) Run(run func(ctx context.Context)) *OrderService_GetUserOrders_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *OrderService_GetUserOrders_Call) Return(_a0 []queries.Order, _a1 error) *OrderService_GetUserOrders_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrderService_GetUserOrders_Call) RunAndReturn(run func(context.Context) ([]queries.Order, error)) *OrderService_GetUserOrders_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PostUserOrders provides a mock function with given fields: ctx, orderNumber
 func (_m *OrderService) PostUserOrders(ctx context.Context, orderNumber string) error {
 	ret := _m.Called(ctx, orderNumber)
@@ -61,6 +97,35 @@ func (_m *OrderService) PostUserOrders(ctx context.Context, orderNumber string) 
 	}
 
 	return r0
+}
+
+// OrderService_PostUserOrders_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostUserOrders'
+type OrderService_PostUserOrders_Call struct {
+	*mock.Call
+}
+
+// PostUserOrders is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orderNumber string
+func (_e *OrderService_Expecter) PostUserOrders(ctx interface{}, orderNumber interface{}) *OrderService_PostUserOrders_Call {
+	return &OrderService_PostUserOrders_Call{Call: _e.mock.On("PostUserOrders", ctx, orderNumber)}
+}
+
+func (_c *OrderService_PostUserOrders_Call) Run(run func(ctx context.Context, orderNumber string)) *OrderService_PostUserOrders_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *OrderService_PostUserOrders_Call) Return(_a0 error) *OrderService_PostUserOrders_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OrderService_PostUserOrders_Call) RunAndReturn(run func(context.Context, string) error) *OrderService_PostUserOrders_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewOrderService creates a new instance of OrderService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

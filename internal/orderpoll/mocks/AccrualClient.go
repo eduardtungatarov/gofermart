@@ -12,6 +12,14 @@ type AccrualClient struct {
 	mock.Mock
 }
 
+type AccrualClient_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *AccrualClient) EXPECT() *AccrualClient_Expecter {
+	return &AccrualClient_Expecter{mock: &_m.Mock}
+}
+
 // GetOrder provides a mock function with given fields: orderNumber
 func (_m *AccrualClient) GetOrder(orderNumber string) (*accrual.Order, error) {
 	ret := _m.Called(orderNumber)
@@ -40,6 +48,34 @@ func (_m *AccrualClient) GetOrder(orderNumber string) (*accrual.Order, error) {
 	}
 
 	return r0, r1
+}
+
+// AccrualClient_GetOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOrder'
+type AccrualClient_GetOrder_Call struct {
+	*mock.Call
+}
+
+// GetOrder is a helper method to define mock.On call
+//   - orderNumber string
+func (_e *AccrualClient_Expecter) GetOrder(orderNumber interface{}) *AccrualClient_GetOrder_Call {
+	return &AccrualClient_GetOrder_Call{Call: _e.mock.On("GetOrder", orderNumber)}
+}
+
+func (_c *AccrualClient_GetOrder_Call) Run(run func(orderNumber string)) *AccrualClient_GetOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *AccrualClient_GetOrder_Call) Return(_a0 *accrual.Order, _a1 error) *AccrualClient_GetOrder_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *AccrualClient_GetOrder_Call) RunAndReturn(run func(string) (*accrual.Order, error)) *AccrualClient_GetOrder_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewAccrualClient creates a new instance of AccrualClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

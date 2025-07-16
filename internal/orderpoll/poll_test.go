@@ -32,7 +32,7 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 		{
 			name: "success_order_found",
 			clientMockSetup: func(m *mocks.AccrualClient) {
-				m.On("GetOrder", "346436439").
+				m.EXPECT().GetOrder("346436439").
 					Return(&accrual.Order{
 						Order:   "346436439",
 						Status:  "PROCESSED",
@@ -55,7 +55,7 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 		{
 			name: "accrual_net_error",
 			clientMockSetup: func(m *mocks.AccrualClient) {
-				m.On("GetOrder", "346436439").
+				m.EXPECT().GetOrder("346436439").
 					Return(nil, errors.New("net error")) // сетевая ошибка.
 			},
 			orderMockSetup: func(m *mocks.OrderService) {
@@ -73,7 +73,7 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 		{
 			name: "order_update_error",
 			clientMockSetup: func(m *mocks.AccrualClient) {
-				m.On("GetOrder", "346436439").
+				m.EXPECT().GetOrder("346436439").
 					Return(&accrual.Order{
 						Order:   "346436439",
 						Status:  "PROCESSED",
@@ -81,7 +81,7 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 					}, nil)
 			},
 			orderMockSetup: func(m *mocks.OrderService) {
-				m.On("UpdateOrder", mock.Anything, 1, "346436439", "PROCESSED", 10055).
+				m.EXPECT().UpdateOrder(mock.Anything, 1, "346436439", "PROCESSED", 10055).
 					Return(errors.New("net error")) // сетевая ошибка.
 			},
 			cancelCtx:   false,
@@ -96,11 +96,11 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 		{
 			name: "accrual_no_content_status",
 			clientMockSetup: func(m *mocks.AccrualClient) {
-				m.On("GetOrder", "346436439").
+				m.EXPECT().GetOrder("346436439").
 					Return(nil, &accrual.NonOkError{Code: http.StatusNoContent}) // 204 status answer
 			},
 			orderMockSetup: func(m *mocks.OrderService) {
-				m.On("UpdateOrder", mock.Anything, 1, "346436439", "INVALID", 0). // then status INVALID set
+				m.EXPECT().UpdateOrder(mock.Anything, 1, "346436439", "INVALID", 0). // then status INVALID set
 													Return(nil)
 			},
 			cancelCtx:   false,
@@ -177,9 +177,6 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 			} else {
 				assert.NoError(t, err, "nil error expected")
 			}
-
-			orderSrv.AssertExpectations(t)
-			client.AssertExpectations(t)
 		})
 	}
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/eduardtungatarov/gofermart/internal/repository/balance/queries"
 )
 
-//go:generate mockery --name=BalanceRepository
+//go:generate mockery --with-expecter --name=BalanceRepository
 type BalanceRepository interface {
 	FindByUserID(ctx context.Context, userID int) (queries.Balance, error)
 }

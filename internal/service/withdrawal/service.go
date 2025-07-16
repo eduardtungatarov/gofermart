@@ -9,7 +9,7 @@ import (
 	"github.com/eduardtungatarov/gofermart/internal/repository/withdrawal/queries"
 )
 
-//go:generate mockery --name=WithdrawalRepository
+//go:generate mockery --with-expecter --name=WithdrawalRepository
 type WithdrawalRepository interface {
 	FindByUserID(ctx context.Context, userID int) ([]queries.Withdrawal, error)
 	SaveWithdrawal(ctx context.Context, withdrawal queries.Withdrawal) error

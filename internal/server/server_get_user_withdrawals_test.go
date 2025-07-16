@@ -41,7 +41,7 @@ func TestGetUserWithdrawalsEndpoint(t *testing.T) {
 		{
 			name: "success",
 			mockSetup: func(m *withdrawalMocks.WithdrawalRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return([]queries.Withdrawal{
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return([]queries.Withdrawal{
 					{
 						OrderNumber: "2377225624",
 						Sum:         50000,
@@ -56,7 +56,7 @@ func TestGetUserWithdrawalsEndpoint(t *testing.T) {
 		{
 			name: "empty_withdrawal",
 			mockSetup: func(m *withdrawalMocks.WithdrawalRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return([]queries.Withdrawal{}, nil)
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return([]queries.Withdrawal{}, nil)
 			},
 			expectedHTTPStatus:  http.StatusNoContent,
 			expectedContentType: "",
@@ -65,7 +65,7 @@ func TestGetUserWithdrawalsEndpoint(t *testing.T) {
 		{
 			name: "internal_err",
 			mockSetup: func(m *withdrawalMocks.WithdrawalRepository) {
-				m.On("FindByUserID", mock.Anything, 1).Return([]queries.Withdrawal{}, errors.New("db err"))
+				m.EXPECT().FindByUserID(mock.Anything, 1).Return([]queries.Withdrawal{}, errors.New("db err"))
 			},
 			expectedHTTPStatus:  http.StatusInternalServerError,
 			expectedContentType: "",
@@ -78,7 +78,7 @@ func TestGetUserWithdrawalsEndpoint(t *testing.T) {
 		withdrawalRepo := withdrawalMocks.NewWithdrawalRepository(t)
 		tt.mockSetup(withdrawalRepo)
 		authSrv := middlewareMocks.NewAuthService(t)
-		authSrv.On("GetUserIDByToken", mock.Anything).
+		authSrv.EXPECT().GetUserIDByToken(mock.Anything).
 			Return(1, nil)
 		m := middleware.MakeMiddleware(
 			zap.NewNop().Sugar(),
@@ -114,8 +114,5 @@ func TestGetUserWithdrawalsEndpoint(t *testing.T) {
 		if tt.expectedContentType != "" {
 			assert.Equal(t, tt.expectedContentType, "application/json", "content-type response is wrong, must be json")
 		}
-
-		// Проверяю вызовы мока.
-		withdrawalRepo.AssertExpectations(t)
 	}
 }

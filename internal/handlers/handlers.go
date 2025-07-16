@@ -27,24 +27,24 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockery --name=AuthService
+//go:generate mockery --with-expecter --name=AuthService
 type AuthService interface {
 	Register(ctx context.Context, login, pwd string) (string, error)
 	Login(ctx context.Context, login, pwd string) (string, error)
 }
 
-//go:generate mockery --name=OrderService
+//go:generate mockery --with-expecter --name=OrderService
 type OrderService interface {
 	PostUserOrders(ctx context.Context, orderNumber string) error
 	GetUserOrders(ctx context.Context) ([]orderQ.Order, error)
 }
 
-//go:generate mockery --name=BalanceService
+//go:generate mockery --with-expecter --name=BalanceService
 type BalanceService interface {
 	GetUserBalance(ctx context.Context) (balanceQ.Balance, error)
 }
 
-//go:generate mockery --name=WithdrawalService
+//go:generate mockery --with-expecter --name=WithdrawalService
 type WithdrawalService interface {
 	GetUserWithdrawals(ctx context.Context) ([]queries.Withdrawal, error)
 	SaveWithdrawal(ctx context.Context, orderNumber string, sum int) error

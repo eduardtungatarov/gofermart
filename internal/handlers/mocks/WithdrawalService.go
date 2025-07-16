@@ -15,6 +15,14 @@ type WithdrawalService struct {
 	mock.Mock
 }
 
+type WithdrawalService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *WithdrawalService) EXPECT() *WithdrawalService_Expecter {
+	return &WithdrawalService_Expecter{mock: &_m.Mock}
+}
+
 // GetUserWithdrawals provides a mock function with given fields: ctx
 func (_m *WithdrawalService) GetUserWithdrawals(ctx context.Context) ([]queries.Withdrawal, error) {
 	ret := _m.Called(ctx)
@@ -45,6 +53,34 @@ func (_m *WithdrawalService) GetUserWithdrawals(ctx context.Context) ([]queries.
 	return r0, r1
 }
 
+// WithdrawalService_GetUserWithdrawals_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserWithdrawals'
+type WithdrawalService_GetUserWithdrawals_Call struct {
+	*mock.Call
+}
+
+// GetUserWithdrawals is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *WithdrawalService_Expecter) GetUserWithdrawals(ctx interface{}) *WithdrawalService_GetUserWithdrawals_Call {
+	return &WithdrawalService_GetUserWithdrawals_Call{Call: _e.mock.On("GetUserWithdrawals", ctx)}
+}
+
+func (_c *WithdrawalService_GetUserWithdrawals_Call) Run(run func(ctx context.Context)) *WithdrawalService_GetUserWithdrawals_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *WithdrawalService_GetUserWithdrawals_Call) Return(_a0 []queries.Withdrawal, _a1 error) *WithdrawalService_GetUserWithdrawals_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *WithdrawalService_GetUserWithdrawals_Call) RunAndReturn(run func(context.Context) ([]queries.Withdrawal, error)) *WithdrawalService_GetUserWithdrawals_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SaveWithdrawal provides a mock function with given fields: ctx, orderNumber, sum
 func (_m *WithdrawalService) SaveWithdrawal(ctx context.Context, orderNumber string, sum int) error {
 	ret := _m.Called(ctx, orderNumber, sum)
@@ -61,6 +97,36 @@ func (_m *WithdrawalService) SaveWithdrawal(ctx context.Context, orderNumber str
 	}
 
 	return r0
+}
+
+// WithdrawalService_SaveWithdrawal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SaveWithdrawal'
+type WithdrawalService_SaveWithdrawal_Call struct {
+	*mock.Call
+}
+
+// SaveWithdrawal is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orderNumber string
+//   - sum int
+func (_e *WithdrawalService_Expecter) SaveWithdrawal(ctx interface{}, orderNumber interface{}, sum interface{}) *WithdrawalService_SaveWithdrawal_Call {
+	return &WithdrawalService_SaveWithdrawal_Call{Call: _e.mock.On("SaveWithdrawal", ctx, orderNumber, sum)}
+}
+
+func (_c *WithdrawalService_SaveWithdrawal_Call) Run(run func(ctx context.Context, orderNumber string, sum int)) *WithdrawalService_SaveWithdrawal_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(int))
+	})
+	return _c
+}
+
+func (_c *WithdrawalService_SaveWithdrawal_Call) Return(_a0 error) *WithdrawalService_SaveWithdrawal_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *WithdrawalService_SaveWithdrawal_Call) RunAndReturn(run func(context.Context, string, int) error) *WithdrawalService_SaveWithdrawal_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewWithdrawalService creates a new instance of WithdrawalService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -14,6 +14,14 @@ type BalanceRepository struct {
 	mock.Mock
 }
 
+type BalanceRepository_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *BalanceRepository) EXPECT() *BalanceRepository_Expecter {
+	return &BalanceRepository_Expecter{mock: &_m.Mock}
+}
+
 // FindByUserID provides a mock function with given fields: ctx, userID
 func (_m *BalanceRepository) FindByUserID(ctx context.Context, userID int) (queries.Balance, error) {
 	ret := _m.Called(ctx, userID)
@@ -40,6 +48,35 @@ func (_m *BalanceRepository) FindByUserID(ctx context.Context, userID int) (quer
 	}
 
 	return r0, r1
+}
+
+// BalanceRepository_FindByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByUserID'
+type BalanceRepository_FindByUserID_Call struct {
+	*mock.Call
+}
+
+// FindByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+func (_e *BalanceRepository_Expecter) FindByUserID(ctx interface{}, userID interface{}) *BalanceRepository_FindByUserID_Call {
+	return &BalanceRepository_FindByUserID_Call{Call: _e.mock.On("FindByUserID", ctx, userID)}
+}
+
+func (_c *BalanceRepository_FindByUserID_Call) Run(run func(ctx context.Context, userID int)) *BalanceRepository_FindByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *BalanceRepository_FindByUserID_Call) Return(_a0 queries.Balance, _a1 error) *BalanceRepository_FindByUserID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BalanceRepository_FindByUserID_Call) RunAndReturn(run func(context.Context, int) (queries.Balance, error)) *BalanceRepository_FindByUserID_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewBalanceRepository creates a new instance of BalanceRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

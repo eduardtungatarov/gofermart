@@ -48,7 +48,7 @@ func TestUserRegisterEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *authMocks.UserRepository) {
-				m.On("SaveUser", mock.Anything, mock.MatchedBy(func(user queries.User) bool {
+				m.EXPECT().SaveUser(mock.Anything, mock.MatchedBy(func(user queries.User) bool {
 					return user.Login == "user"
 				})).Return(queries.User{ID: 1}, nil)
 			},
@@ -92,7 +92,7 @@ func TestUserRegisterEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *authMocks.UserRepository) {
-				m.On("SaveUser", mock.Anything, mock.MatchedBy(func(user queries.User) bool {
+				m.EXPECT().SaveUser(mock.Anything, mock.MatchedBy(func(user queries.User) bool {
 					return user.Login == "user"
 				})).Return(queries.User{}, userRepository.ErrUserAlreadyExists)
 			},
@@ -107,7 +107,7 @@ func TestUserRegisterEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *authMocks.UserRepository) {
-				m.On("SaveUser", mock.Anything, mock.MatchedBy(func(user queries.User) bool {
+				m.EXPECT().SaveUser(mock.Anything, mock.MatchedBy(func(user queries.User) bool {
 					return user.Login == "user"
 				})).Return(queries.User{}, errors.New("db error"))
 			},

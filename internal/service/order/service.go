@@ -21,7 +21,7 @@ var (
 	ErrOrderAlreadyUploadedByAnotherUser = errors.New("order number was already uploaded by another user")
 )
 
-//go:generate mockery --name=OrderRepository
+//go:generate mockery --with-expecter --name=OrderRepository
 type OrderRepository interface {
 	SaveOrder(ctx context.Context, order queries.Order) (queries.Order, error)
 	FindOrderByOrderNumber(ctx context.Context, orderNumber string) (queries.Order, error)

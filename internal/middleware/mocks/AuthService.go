@@ -9,6 +9,14 @@ type AuthService struct {
 	mock.Mock
 }
 
+type AuthService_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *AuthService) EXPECT() *AuthService_Expecter {
+	return &AuthService_Expecter{mock: &_m.Mock}
+}
+
 // GetUserIDByToken provides a mock function with given fields: tokenStr
 func (_m *AuthService) GetUserIDByToken(tokenStr string) (int, error) {
 	ret := _m.Called(tokenStr)
@@ -35,6 +43,34 @@ func (_m *AuthService) GetUserIDByToken(tokenStr string) (int, error) {
 	}
 
 	return r0, r1
+}
+
+// AuthService_GetUserIDByToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserIDByToken'
+type AuthService_GetUserIDByToken_Call struct {
+	*mock.Call
+}
+
+// GetUserIDByToken is a helper method to define mock.On call
+//   - tokenStr string
+func (_e *AuthService_Expecter) GetUserIDByToken(tokenStr interface{}) *AuthService_GetUserIDByToken_Call {
+	return &AuthService_GetUserIDByToken_Call{Call: _e.mock.On("GetUserIDByToken", tokenStr)}
+}
+
+func (_c *AuthService_GetUserIDByToken_Call) Run(run func(tokenStr string)) *AuthService_GetUserIDByToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *AuthService_GetUserIDByToken_Call) Return(_a0 int, _a1 error) *AuthService_GetUserIDByToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *AuthService_GetUserIDByToken_Call) RunAndReturn(run func(string) (int, error)) *AuthService_GetUserIDByToken_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewAuthService creates a new instance of AuthService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

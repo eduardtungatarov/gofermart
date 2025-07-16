@@ -15,6 +15,14 @@ type OrderRepository struct {
 	mock.Mock
 }
 
+type OrderRepository_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *OrderRepository) EXPECT() *OrderRepository_Expecter {
+	return &OrderRepository_Expecter{mock: &_m.Mock}
+}
+
 // FindByInProgressStatuses provides a mock function with given fields: ctx
 func (_m *OrderRepository) FindByInProgressStatuses(ctx context.Context) ([]queries.Order, error) {
 	ret := _m.Called(ctx)
@@ -43,6 +51,34 @@ func (_m *OrderRepository) FindByInProgressStatuses(ctx context.Context) ([]quer
 	}
 
 	return r0, r1
+}
+
+// OrderRepository_FindByInProgressStatuses_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByInProgressStatuses'
+type OrderRepository_FindByInProgressStatuses_Call struct {
+	*mock.Call
+}
+
+// FindByInProgressStatuses is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *OrderRepository_Expecter) FindByInProgressStatuses(ctx interface{}) *OrderRepository_FindByInProgressStatuses_Call {
+	return &OrderRepository_FindByInProgressStatuses_Call{Call: _e.mock.On("FindByInProgressStatuses", ctx)}
+}
+
+func (_c *OrderRepository_FindByInProgressStatuses_Call) Run(run func(ctx context.Context)) *OrderRepository_FindByInProgressStatuses_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *OrderRepository_FindByInProgressStatuses_Call) Return(_a0 []queries.Order, _a1 error) *OrderRepository_FindByInProgressStatuses_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrderRepository_FindByInProgressStatuses_Call) RunAndReturn(run func(context.Context) ([]queries.Order, error)) *OrderRepository_FindByInProgressStatuses_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // FindByUserID provides a mock function with given fields: ctx, userID
@@ -75,6 +111,35 @@ func (_m *OrderRepository) FindByUserID(ctx context.Context, userID int) ([]quer
 	return r0, r1
 }
 
+// OrderRepository_FindByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByUserID'
+type OrderRepository_FindByUserID_Call struct {
+	*mock.Call
+}
+
+// FindByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+func (_e *OrderRepository_Expecter) FindByUserID(ctx interface{}, userID interface{}) *OrderRepository_FindByUserID_Call {
+	return &OrderRepository_FindByUserID_Call{Call: _e.mock.On("FindByUserID", ctx, userID)}
+}
+
+func (_c *OrderRepository_FindByUserID_Call) Run(run func(ctx context.Context, userID int)) *OrderRepository_FindByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *OrderRepository_FindByUserID_Call) Return(_a0 []queries.Order, _a1 error) *OrderRepository_FindByUserID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrderRepository_FindByUserID_Call) RunAndReturn(run func(context.Context, int) ([]queries.Order, error)) *OrderRepository_FindByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindOrderByOrderNumber provides a mock function with given fields: ctx, orderNumber
 func (_m *OrderRepository) FindOrderByOrderNumber(ctx context.Context, orderNumber string) (queries.Order, error) {
 	ret := _m.Called(ctx, orderNumber)
@@ -101,6 +166,35 @@ func (_m *OrderRepository) FindOrderByOrderNumber(ctx context.Context, orderNumb
 	}
 
 	return r0, r1
+}
+
+// OrderRepository_FindOrderByOrderNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindOrderByOrderNumber'
+type OrderRepository_FindOrderByOrderNumber_Call struct {
+	*mock.Call
+}
+
+// FindOrderByOrderNumber is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orderNumber string
+func (_e *OrderRepository_Expecter) FindOrderByOrderNumber(ctx interface{}, orderNumber interface{}) *OrderRepository_FindOrderByOrderNumber_Call {
+	return &OrderRepository_FindOrderByOrderNumber_Call{Call: _e.mock.On("FindOrderByOrderNumber", ctx, orderNumber)}
+}
+
+func (_c *OrderRepository_FindOrderByOrderNumber_Call) Run(run func(ctx context.Context, orderNumber string)) *OrderRepository_FindOrderByOrderNumber_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *OrderRepository_FindOrderByOrderNumber_Call) Return(_a0 queries.Order, _a1 error) *OrderRepository_FindOrderByOrderNumber_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrderRepository_FindOrderByOrderNumber_Call) RunAndReturn(run func(context.Context, string) (queries.Order, error)) *OrderRepository_FindOrderByOrderNumber_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // SaveOrder provides a mock function with given fields: ctx, _a1
@@ -131,6 +225,35 @@ func (_m *OrderRepository) SaveOrder(ctx context.Context, _a1 queries.Order) (qu
 	return r0, r1
 }
 
+// OrderRepository_SaveOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SaveOrder'
+type OrderRepository_SaveOrder_Call struct {
+	*mock.Call
+}
+
+// SaveOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - _a1 queries.Order
+func (_e *OrderRepository_Expecter) SaveOrder(ctx interface{}, _a1 interface{}) *OrderRepository_SaveOrder_Call {
+	return &OrderRepository_SaveOrder_Call{Call: _e.mock.On("SaveOrder", ctx, _a1)}
+}
+
+func (_c *OrderRepository_SaveOrder_Call) Run(run func(ctx context.Context, _a1 queries.Order)) *OrderRepository_SaveOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(queries.Order))
+	})
+	return _c
+}
+
+func (_c *OrderRepository_SaveOrder_Call) Return(_a0 queries.Order, _a1 error) *OrderRepository_SaveOrder_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrderRepository_SaveOrder_Call) RunAndReturn(run func(context.Context, queries.Order) (queries.Order, error)) *OrderRepository_SaveOrder_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateOrder provides a mock function with given fields: ctx, userID, orderNumber, status, accrual
 func (_m *OrderRepository) UpdateOrder(ctx context.Context, userID int, orderNumber string, status string, accrual int) error {
 	ret := _m.Called(ctx, userID, orderNumber, status, accrual)
@@ -147,6 +270,38 @@ func (_m *OrderRepository) UpdateOrder(ctx context.Context, userID int, orderNum
 	}
 
 	return r0
+}
+
+// OrderRepository_UpdateOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateOrder'
+type OrderRepository_UpdateOrder_Call struct {
+	*mock.Call
+}
+
+// UpdateOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+//   - orderNumber string
+//   - status string
+//   - accrual int
+func (_e *OrderRepository_Expecter) UpdateOrder(ctx interface{}, userID interface{}, orderNumber interface{}, status interface{}, accrual interface{}) *OrderRepository_UpdateOrder_Call {
+	return &OrderRepository_UpdateOrder_Call{Call: _e.mock.On("UpdateOrder", ctx, userID, orderNumber, status, accrual)}
+}
+
+func (_c *OrderRepository_UpdateOrder_Call) Run(run func(ctx context.Context, userID int, orderNumber string, status string, accrual int)) *OrderRepository_UpdateOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int), args[2].(string), args[3].(string), args[4].(int))
+	})
+	return _c
+}
+
+func (_c *OrderRepository_UpdateOrder_Call) Return(_a0 error) *OrderRepository_UpdateOrder_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OrderRepository_UpdateOrder_Call) RunAndReturn(run func(context.Context, int, string, string, int) error) *OrderRepository_UpdateOrder_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewOrderRepository creates a new instance of OrderRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

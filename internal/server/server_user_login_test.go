@@ -52,7 +52,7 @@ func TestUserLoginEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *authMocks.UserRepository) {
-				m.On("FindUserByLogin", mock.Anything, "valid_user").Return(validUser, nil)
+				m.EXPECT().FindUserByLogin(mock.Anything, "valid_user").Return(validUser, nil)
 			},
 			expectedAuthHeader: true,
 			expectedHTTPStatus: http.StatusOK,
@@ -65,7 +65,7 @@ func TestUserLoginEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *authMocks.UserRepository) {
-				m.On("FindUserByLogin", mock.Anything, "valid_user").Return(validUser, nil)
+				m.EXPECT().FindUserByLogin(mock.Anything, "valid_user").Return(validUser, nil)
 			},
 			expectedAuthHeader: false,
 			expectedHTTPStatus: http.StatusUnauthorized,
@@ -78,7 +78,7 @@ func TestUserLoginEndpoint(t *testing.T) {
 			},
 			requestContentType: "application/json",
 			mockSetup: func(m *authMocks.UserRepository) {
-				m.On("FindUserByLogin", mock.Anything, "unexist_user").Return(queries.User{}, repository.ErrNoModel)
+				m.EXPECT().FindUserByLogin(mock.Anything, "unexist_user").Return(queries.User{}, repository.ErrNoModel)
 			},
 			expectedAuthHeader: false,
 			expectedHTTPStatus: http.StatusUnauthorized,

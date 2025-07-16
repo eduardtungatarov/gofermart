@@ -44,7 +44,7 @@ func TestPostOrdersEndpoint(t *testing.T) {
 			requestBody:        "12345678903", // valid order number
 			requestContentType: "text/plain",
 			mockSetup: func(m *orderMocks.OrderRepository) {
-				m.On("SaveOrder", mock.Anything, queries.Order{
+				m.EXPECT().SaveOrder(mock.Anything, queries.Order{
 					UserID:      1,
 					OrderNumber: "12345678903",
 					Status:      "NEW",
@@ -85,14 +85,14 @@ func TestPostOrdersEndpoint(t *testing.T) {
 			requestBody:        "12345678903", // valid order number
 			requestContentType: "text/plain",
 			mockSetup: func(m *orderMocks.OrderRepository) {
-				m.On("SaveOrder", mock.Anything, queries.Order{
+				m.EXPECT().SaveOrder(mock.Anything, queries.Order{
 					UserID:      1,
 					OrderNumber: "12345678903",
 					Status:      "NEW",
 					Accrual:     0,
 				}).Return(queries.Order{}, order.ErrOrderAlreadyExists)
 				// Заказ принадлежил юзеру с ID = 1;
-				m.On("FindOrderByOrderNumber", mock.Anything, "12345678903").
+				m.EXPECT().FindOrderByOrderNumber(mock.Anything, "12345678903").
 					Return(queries.Order{UserID: 1}, nil)
 			},
 			expectedHTTPStatus: http.StatusOK,
@@ -102,14 +102,14 @@ func TestPostOrdersEndpoint(t *testing.T) {
 			requestBody:        "12345678903", // valid order number
 			requestContentType: "text/plain",
 			mockSetup: func(m *orderMocks.OrderRepository) {
-				m.On("SaveOrder", mock.Anything, queries.Order{
+				m.EXPECT().SaveOrder(mock.Anything, queries.Order{
 					UserID:      1,
 					OrderNumber: "12345678903",
 					Status:      "NEW",
 					Accrual:     0,
 				}).Return(queries.Order{}, order.ErrOrderAlreadyExists)
 				// Заказ принадлежил юзеру с ID = 2;
-				m.On("FindOrderByOrderNumber", mock.Anything, "12345678903").
+				m.EXPECT().FindOrderByOrderNumber(mock.Anything, "12345678903").
 					Return(queries.Order{UserID: 2}, nil)
 			},
 			expectedHTTPStatus: http.StatusConflict,
@@ -119,7 +119,7 @@ func TestPostOrdersEndpoint(t *testing.T) {
 			requestBody:        "12345678903", // valid order number
 			requestContentType: "text/plain",
 			mockSetup: func(m *orderMocks.OrderRepository) {
-				m.On("SaveOrder", mock.Anything, queries.Order{
+				m.EXPECT().SaveOrder(mock.Anything, queries.Order{
 					UserID:      1,
 					OrderNumber: "12345678903",
 					Status:      "NEW",
@@ -135,7 +135,7 @@ func TestPostOrdersEndpoint(t *testing.T) {
 		orderRepo := orderMocks.NewOrderRepository(t)
 		tt.mockSetup(orderRepo)
 		authSrv := middlewareMocks.NewAuthService(t)
-		authSrv.On("GetUserIDByToken", mock.Anything).
+		authSrv.EXPECT().GetUserIDByToken(mock.Anything).
 			Return(1, nil)
 		m := middleware.MakeMiddleware(
 			zap.NewNop().Sugar(),

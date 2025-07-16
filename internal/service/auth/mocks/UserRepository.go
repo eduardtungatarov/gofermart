@@ -14,6 +14,14 @@ type UserRepository struct {
 	mock.Mock
 }
 
+type UserRepository_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *UserRepository) EXPECT() *UserRepository_Expecter {
+	return &UserRepository_Expecter{mock: &_m.Mock}
+}
+
 // FindUserByLogin provides a mock function with given fields: ctx, login
 func (_m *UserRepository) FindUserByLogin(ctx context.Context, login string) (queries.User, error) {
 	ret := _m.Called(ctx, login)
@@ -42,6 +50,35 @@ func (_m *UserRepository) FindUserByLogin(ctx context.Context, login string) (qu
 	return r0, r1
 }
 
+// UserRepository_FindUserByLogin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindUserByLogin'
+type UserRepository_FindUserByLogin_Call struct {
+	*mock.Call
+}
+
+// FindUserByLogin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - login string
+func (_e *UserRepository_Expecter) FindUserByLogin(ctx interface{}, login interface{}) *UserRepository_FindUserByLogin_Call {
+	return &UserRepository_FindUserByLogin_Call{Call: _e.mock.On("FindUserByLogin", ctx, login)}
+}
+
+func (_c *UserRepository_FindUserByLogin_Call) Run(run func(ctx context.Context, login string)) *UserRepository_FindUserByLogin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserRepository_FindUserByLogin_Call) Return(_a0 queries.User, _a1 error) *UserRepository_FindUserByLogin_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserRepository_FindUserByLogin_Call) RunAndReturn(run func(context.Context, string) (queries.User, error)) *UserRepository_FindUserByLogin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SaveUser provides a mock function with given fields: ctx, user
 func (_m *UserRepository) SaveUser(ctx context.Context, user queries.User) (queries.User, error) {
 	ret := _m.Called(ctx, user)
@@ -68,6 +105,35 @@ func (_m *UserRepository) SaveUser(ctx context.Context, user queries.User) (quer
 	}
 
 	return r0, r1
+}
+
+// UserRepository_SaveUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SaveUser'
+type UserRepository_SaveUser_Call struct {
+	*mock.Call
+}
+
+// SaveUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - user queries.User
+func (_e *UserRepository_Expecter) SaveUser(ctx interface{}, user interface{}) *UserRepository_SaveUser_Call {
+	return &UserRepository_SaveUser_Call{Call: _e.mock.On("SaveUser", ctx, user)}
+}
+
+func (_c *UserRepository_SaveUser_Call) Run(run func(ctx context.Context, user queries.User)) *UserRepository_SaveUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(queries.User))
+	})
+	return _c
+}
+
+func (_c *UserRepository_SaveUser_Call) Return(_a0 queries.User, _a1 error) *UserRepository_SaveUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserRepository_SaveUser_Call) RunAndReturn(run func(context.Context, queries.User) (queries.User, error)) *UserRepository_SaveUser_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NewUserRepository creates a new instance of UserRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
