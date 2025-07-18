@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	stlog "log"
 	"os/signal"
+	"sync"
 	"syscall"
-	"time"
 
 	"github.com/eduardtungatarov/gofermart/internal/accrual"
 
@@ -77,32 +76,26 @@ func main() {
 	m := middleware.MakeMiddleware(log, authSrv)
 	s := server.NewServer(cfg, h, m)
 
-	errChan := make(chan error, 2)
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
 	// Запускаем опрашиватель заказов.
 	go func() {
-		err = op.Run(ctx)
-		if err != nil {
-			errChan <- fmt.Errorf("orderpoll.Run() failed: %w", err)
-		}
+		defer wg.Done()
+		op.Run(ctx)
 	}()
 	// Запускаем сервер.
 	go func() {
+		defer wg.Done()
 		err = s.Run(ctx)
 		if err != nil {
-			errChan <- fmt.Errorf("httpserver.Run() failed: %w", err)
+			log.Errorf("httpserver.Run() failed: %w", err)
 		}
 	}()
 	log.Info("Service started")
 
-	select {
-	case err := <-errChan:
-		log.Error(err)
-		stop()
-	case <-ctx.Done():
-		log.Info("Service is stop...")
-		stop()
-	}
-
-	time.Sleep(cfg.ShutdownTime)
+	<-ctx.Done()
+	log.Info("Service stop...")
+	wg.Wait()
 	log.Info("Service stopped")
 }

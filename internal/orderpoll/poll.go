@@ -3,8 +3,8 @@ package orderpoll
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/eduardtungatarov/gofermart/internal/service/order"
@@ -41,6 +41,7 @@ type OrderPoll struct {
 	sleepTime time.Duration
 	workerNum int
 	client    AccrualClient
+	mtx       sync.RWMutex
 }
 
 func New(log *zap.SugaredLogger, cfg config.Config, orderSrv OrderService, client AccrualClient) *OrderPoll {
@@ -51,47 +52,42 @@ func New(log *zap.SugaredLogger, cfg config.Config, orderSrv OrderService, clien
 		sleepTime: cfg.OrderPoll.PollSleepTime,
 		workerNum: cfg.OrderPoll.PollWorkerNum,
 		client:    client,
+		mtx:       sync.RWMutex{},
 	}
 }
 
-func (o *OrderPoll) Run(ctx context.Context) error {
+func (o *OrderPoll) Run(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	errChan := make(chan error, o.workerNum+1)
 	orderCh := make(chan OrderChValue, o.workerNum)
 
+	wg := sync.WaitGroup{}
+	wg.Add(o.workerNum + 1)
+
 	go func() {
-		err := o.RunReader(ctx, orderCh)
-		if err != nil {
-			errChan <- fmt.Errorf("orderSrv.UpdateOrder: %w", err)
-		}
+		defer wg.Done()
+		o.RunReader(ctx, orderCh)
 	}()
 
 	for i := 0; i < o.workerNum; i++ {
 		go func() {
-			err := o.RunWorker(ctx, orderCh)
-			if err != nil {
-				errChan <- fmt.Errorf("o.RunWorker: %w", err)
-			}
+			defer wg.Done()
+			o.RunWorker(ctx, orderCh)
 		}()
 	}
 
-	select {
-	case err := <-errChan:
-		cancel()
-		return err
-	case <-ctx.Done():
-		cancel()
-		return nil
-	}
+	<-ctx.Done()
+	wg.Wait()
 }
 
-func (o *OrderPoll) RunReader(ctx context.Context, ch chan<- OrderChValue) error {
+func (o *OrderPoll) RunReader(ctx context.Context, ch chan<- OrderChValue) {
 	defer close(ch)
 	for {
 		orders, err := o.orderSrv.FindByInProgressStatuses(ctx)
 		if err != nil {
-			return err
+			o.log.Errorf("RunReader o.orderSrv.FindByInProgressStatuses: %w", err)
+			continue
 		}
 
 		for _, v := range orders {
@@ -101,24 +97,24 @@ func (o *OrderPoll) RunReader(ctx context.Context, ch chan<- OrderChValue) error
 				UserID:      v.UserID,
 			}:
 			case <-ctx.Done():
-				return nil
+				return
 			}
 		}
 
 		select {
 		case <-time.After(o.sleepTime):
 		case <-ctx.Done():
-			return nil
+			return
 		}
 	}
 }
 
-func (o *OrderPoll) RunWorker(ctx context.Context, ch <-chan OrderChValue) error {
+func (o *OrderPoll) RunWorker(ctx context.Context, ch <-chan OrderChValue) {
 	for {
 		select {
 		case orderChV, ok := <-ch:
 			if !ok {
-				return nil
+				return
 			}
 
 			resp, err := o.client.GetOrder(orderChV.OrderNumber)
@@ -128,20 +124,24 @@ func (o *OrderPoll) RunWorker(ctx context.Context, ch <-chan OrderChValue) error
 					if nonOkErr.Code == http.StatusNoContent {
 						err = o.orderSrv.UpdateOrder(ctx, orderChV.UserID, orderChV.OrderNumber, order.StatusInvalid, 0)
 						if err != nil {
-							return err
+							o.log.Errorf("RunWorker o.orderSrv.UpdateOrder: %w", err)
+							continue
 						}
-						continue
+					}
+					if nonOkErr.Code == http.StatusTooManyRequests {
+						//
 					}
 				}
-				return err
+				continue
 			}
 
 			err = o.orderSrv.UpdateOrder(ctx, orderChV.UserID, orderChV.OrderNumber, resp.Status, int(resp.Accrual*100))
 			if err != nil {
-				return err
+				o.log.Errorf("RunWorker o.orderSrv.UpdateOrder: %w", err)
+				continue
 			}
 		case <-ctx.Done():
-			return nil
+			return
 		}
 	}
 }

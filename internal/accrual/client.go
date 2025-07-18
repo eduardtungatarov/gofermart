@@ -6,14 +6,16 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/eduardtungatarov/gofermart/internal/config"
 )
 
 // NonOkError в случае, если сбербанк ответил кодом ошибки != 200 (OK).
 type NonOkError struct {
-	Msg  string
-	Code int
+	Msg        string
+	Code       int
+	RetryAfter int
 }
 
 // Error текст ошибки.
@@ -51,7 +53,21 @@ func (c *Client) GetOrder(orderNumber string) (*Order, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, &NonOkError{Msg: resp.Status, Code: resp.StatusCode}
+		var retryAfter int
+		if resp.StatusCode == http.StatusTooManyRequests {
+			headerValue := resp.Header.Get("Retry-After")
+			headerValueInt, err := strconv.Atoi(headerValue)
+			if err != nil {
+				retryAfter = 60
+			} else {
+				retryAfter = headerValueInt
+			}
+		}
+		return nil, &NonOkError{
+			Msg:        resp.Status,
+			Code:       resp.StatusCode,
+			RetryAfter: retryAfter,
+		}
 	}
 
 	var order *Order

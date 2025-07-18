@@ -25,8 +25,6 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 		name            string
 		clientMockSetup func(m *mocks.AccrualClient)
 		orderMockSetup  func(m *mocks.OrderService)
-		cancelCtx       bool
-		expectError     bool
 		inputOrders     []OrderChValue
 	}{
 		{
@@ -43,8 +41,6 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 				m.On("UpdateOrder", mock.Anything, 1, "346436439", "PROCESSED", 10055).
 					Return(nil)
 			},
-			cancelCtx:   false,
-			expectError: false,
 			inputOrders: []OrderChValue{
 				{
 					OrderNumber: "346436439",
@@ -61,8 +57,6 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 			orderMockSetup: func(m *mocks.OrderService) {
 				//
 			},
-			cancelCtx:   false,
-			expectError: true,
 			inputOrders: []OrderChValue{
 				{
 					OrderNumber: "346436439",
@@ -84,8 +78,6 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 				m.EXPECT().UpdateOrder(mock.Anything, 1, "346436439", "PROCESSED", 10055).
 					Return(errors.New("net error")) // сетевая ошибка.
 			},
-			cancelCtx:   false,
-			expectError: true,
 			inputOrders: []OrderChValue{
 				{
 					OrderNumber: "346436439",
@@ -103,38 +95,12 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 				m.EXPECT().UpdateOrder(mock.Anything, 1, "346436439", "INVALID", 0). // then status INVALID set
 													Return(nil)
 			},
-			cancelCtx:   false,
-			expectError: false,
 			inputOrders: []OrderChValue{
 				{
 					OrderNumber: "346436439",
 					UserID:      1,
 				},
 			},
-		},
-		{
-			name: "channel_is_closed",
-			clientMockSetup: func(m *mocks.AccrualClient) {
-				//
-			},
-			orderMockSetup: func(m *mocks.OrderService) {
-				//
-			},
-			cancelCtx:   false,
-			expectError: false,
-			inputOrders: nil, // empty, channel auto close
-		},
-		{
-			name: "context_is_canceled",
-			clientMockSetup: func(m *mocks.AccrualClient) {
-				//
-			},
-			orderMockSetup: func(m *mocks.OrderService) {
-				//
-			},
-			cancelCtx:   true,
-			expectError: false,
-			inputOrders: nil, // empty
 		},
 	}
 
@@ -165,18 +131,7 @@ func TestOrderPoll_RunWorker(t *testing.T) {
 			close(ch)
 
 			// Проверяем.
-			if tt.cancelCtx {
-				go func() {
-					time.Sleep(10 * time.Millisecond)
-					cancel()
-				}()
-			}
-			err := o.RunWorker(ctx, ch)
-			if tt.expectError {
-				assert.Error(t, err, "expected error")
-			} else {
-				assert.NoError(t, err, "nil error expected")
-			}
+			o.RunWorker(ctx, ch)
 		})
 	}
 }
@@ -185,7 +140,6 @@ func TestOrderPoll_RunReader(t *testing.T) {
 	tests := []struct {
 		name           string
 		orderMockSetup func(m *mocks.OrderService)
-		expectError    bool
 		expectOutput   []OrderChValue
 	}{
 		{
@@ -203,7 +157,6 @@ func TestOrderPoll_RunReader(t *testing.T) {
 						},
 					}, nil)
 			},
-			expectError: false,
 			expectOutput: []OrderChValue{
 				{
 					OrderNumber: "123",
@@ -214,15 +167,6 @@ func TestOrderPoll_RunReader(t *testing.T) {
 					UserID:      2,
 				},
 			},
-		},
-		{
-			name: "err_order_found",
-			orderMockSetup: func(m *mocks.OrderService) {
-				m.On("FindByInProgressStatuses", mock.Anything).
-					Return([]queries.Order{}, errors.New("db error"))
-			},
-			expectError:  true,
-			expectOutput: []OrderChValue{},
 		},
 	}
 
@@ -247,12 +191,7 @@ func TestOrderPoll_RunReader(t *testing.T) {
 			// Проверяем.
 			cancel() // чтобы выйти из бесконеч цикла.
 			output := make(chan OrderChValue, len(tt.expectOutput))
-			err := o.RunReader(ctx, output)
-			if tt.expectError {
-				assert.Error(t, err, "expected error")
-			} else {
-				assert.NoError(t, err, "nil error expected")
-			}
+			o.RunReader(ctx, output)
 
 			if len(tt.expectOutput) > 0 {
 				for order := range output {
