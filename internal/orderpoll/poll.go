@@ -35,24 +35,26 @@ type OrderChValue struct {
 }
 
 type OrderPoll struct {
-	log       *zap.SugaredLogger
-	cfg       config.Config
-	orderSrv  OrderService
-	sleepTime time.Duration
-	workerNum int
-	client    AccrualClient
-	mtx       sync.RWMutex
+	log                 *zap.SugaredLogger
+	cfg                 config.Config
+	orderSrv            OrderService
+	sleepTime           time.Duration
+	workerNum           int
+	client              AccrualClient
+	reqsBlockedUntil    time.Time
+	reqsBlockedUntilMtx sync.RWMutex
 }
 
 func New(log *zap.SugaredLogger, cfg config.Config, orderSrv OrderService, client AccrualClient) *OrderPoll {
 	return &OrderPoll{
-		log:       log,
-		cfg:       cfg,
-		orderSrv:  orderSrv,
-		sleepTime: cfg.OrderPoll.PollSleepTime,
-		workerNum: cfg.OrderPoll.PollWorkerNum,
-		client:    client,
-		mtx:       sync.RWMutex{},
+		log:                 log,
+		cfg:                 cfg,
+		orderSrv:            orderSrv,
+		sleepTime:           cfg.OrderPoll.PollSleepTime,
+		workerNum:           cfg.OrderPoll.PollWorkerNum,
+		client:              client,
+		reqsBlockedUntil:    time.Now(),
+		reqsBlockedUntilMtx: sync.RWMutex{},
 	}
 }
 
@@ -111,6 +113,19 @@ func (o *OrderPoll) RunReader(ctx context.Context, ch chan<- OrderChValue) {
 
 func (o *OrderPoll) RunWorker(ctx context.Context, ch <-chan OrderChValue) {
 	for {
+		o.reqsBlockedUntilMtx.RLock()
+		waitUntil := o.reqsBlockedUntil
+		o.reqsBlockedUntilMtx.RUnlock()
+		if now := time.Now(); now.Before(waitUntil) {
+			waitTime := waitUntil.Sub(now)
+			select {
+			case <-time.After(waitTime):
+				continue
+			case <-ctx.Done():
+				return
+			}
+		}
+
 		select {
 		case orderChV, ok := <-ch:
 			if !ok {
@@ -129,7 +144,9 @@ func (o *OrderPoll) RunWorker(ctx context.Context, ch <-chan OrderChValue) {
 						}
 					}
 					if nonOkErr.Code == http.StatusTooManyRequests {
-						//
+						o.reqsBlockedUntilMtx.Lock()
+						o.reqsBlockedUntil = time.Now().Add(time.Second * time.Duration(nonOkErr.RetryAfter))
+						o.reqsBlockedUntilMtx.Unlock()
 					}
 				}
 				continue
