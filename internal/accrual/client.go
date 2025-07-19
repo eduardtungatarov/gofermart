@@ -1,0 +1,86 @@
+package accrual
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strconv"
+
+	"github.com/eduardtungatarov/gofermart/internal/config"
+)
+
+// NonOkError в случае, если сбербанк ответил кодом ошибки != 200 (OK).
+type NonOkError struct {
+	Msg        string
+	Code       int
+	RetryAfter int
+}
+
+// Error текст ошибки.
+func (e *NonOkError) Error() string {
+	return fmt.Sprintf("unexpected status code: %d, status message: %s", e.Code, e.Msg)
+}
+
+type Order struct {
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual"`
+}
+
+type Client struct {
+	baseURL    string
+	httpClient *http.Client
+}
+
+func NewClient(cfg config.Config) *Client {
+	return &Client{
+		baseURL:    cfg.AccrualAddr,
+		httpClient: &http.Client{},
+	}
+}
+
+func (c *Client) GetOrder(orderNumber string) (*Order, error) {
+	endpointURL, err := url.JoinPath(c.baseURL, "api/orders", orderNumber)
+	if err != nil {
+		return nil, fmt.Errorf("url.JoinPath err: %w", err)
+	}
+
+	resp, err := c.httpClient.Get(endpointURL)
+	if err != nil {
+		return nil, fmt.Errorf("httpClient.Get net err: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var retryAfter int
+		if resp.StatusCode == http.StatusTooManyRequests {
+			headerValue := resp.Header.Get("Retry-After")
+			headerValueInt, err := strconv.Atoi(headerValue)
+			if err != nil {
+				retryAfter = 60
+			} else {
+				retryAfter = headerValueInt
+			}
+		}
+		return nil, &NonOkError{
+			Msg:        resp.Status,
+			Code:       resp.StatusCode,
+			RetryAfter: retryAfter,
+		}
+	}
+
+	var order *Order
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("io.ReadAll: %w", err)
+	}
+	defer resp.Body.Close()
+
+	err = json.Unmarshal(body, &order)
+	if err != nil {
+		return nil, fmt.Errorf("json.Unmarshal: %w", err)
+	}
+
+	return order, nil
+}
